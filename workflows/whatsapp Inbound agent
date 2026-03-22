@@ -1,0 +1,2682 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "36578e2f-a621-4033-bc03-f1045026e3e9",
+              "name": "text",
+              "value": "={{ $json.body.conversation.messages[0].content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        1376
+      ],
+      "id": "71fa094d-1ea5-4916-bb6e-34af600cd133",
+      "name": "Set Value"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.attachments[0].file_type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f17ce6be-7ed3-4e8f-a3a9-d8854592d16a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ad5f60f6-76a9-44b7-a02d-d5899894fb89",
+                    "leftValue": "={{ $json.body.attachments[0] }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notExists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1e958f87-39a6-4fb1-bc2c-9ba9aa772bca",
+                    "leftValue": "={{ $json.body.attachments[0].file_type }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        672,
+        1360
+      ],
+      "id": "e3aa0532-e758-49f1-a006-17e812b03a5f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1568,
+        1184
+      ],
+      "id": "b77bf1b5-dae9-4411-8ffb-982f73477110",
+      "name": "Transcribe a recording1",
+      "credentials": {
+        "openAiApi": {
+          "id": "np2sanG5hEgUvAtD",
+          "name": "cryptominor open ai api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Use this tool to search for official information about CryptoMiners. It contains details on mining rig specifications, hosting service pricing, profitability, and company policies. Always use this tool before answering technical questions.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "cryptominers",
+          "mode": "list",
+          "cachedResultName": "cryptominers"
+        },
+        "options": {
+          "pineconeNamespace": "crypto_faqs"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        2048,
+        1600
+      ],
+      "id": "208e0bdf-b4fd-44bf-90de-7cd8b503d486",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "S20ZhPgk5Q4k6W8b",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "text": "Describe the image in detail.",
+        "inputType": "base64",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1344,
+        1568
+      ],
+      "id": "343f13f4-df18-49b8-9b19-35a458e26318",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "np2sanG5hEgUvAtD",
+          "name": "cryptominor open ai api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3f6ebdd8-687a-4095-b542-e01174e70549",
+              "name": "text",
+              "value": "=# The user provided the following image and text.  ## Image Description: {{ $json['0'].content[0].text }}  ## User Message{{ $('Webhook').item.json.body.conversation.messages[0].content }}: ",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        1568
+      ],
+      "id": "58ea2101-f113-4e3e-8716-4b517743fcd9",
+      "name": "Image + Text Prompt"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name of the lead: {{ $('Webhook').item.json.body.sender.name }}\nyou can use it some time for personalization\n, {{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Here's an enhanced version of your prompt with embeddings integration for company-related queries:\n\nROLE\nYou are an AI assistant for a cryptocurrency mining business. Your goals:\nImportant Note: First reply to customer latest message then your question if any.. prefer first customer latest message\nReply politely, professionally, and concisely (max 2-3 lines).\nAlways answer the latest user message.\n\nvery Important: 1. if use intent is like \". **\"general_search\"**: General inquiry or list request\n   - Examples: \"show me miners\", \"what's available\", \"list all\"\"\nthen you need to just add this keyword in repy \"wait, sending the pdf\", donot call any tool\nAsk qualification questions in the given order.\nScore leads accurately.\n    2.mostim imortant rul :  if customer want to connect to the real human agent then sned  the score more than 70 always \n\nFor ANY real-time, product, ASIC miner, pricing, availability, or hosting-related question, ALWAYS call the tool ASIC Scraper Webhook Service.\nNEVER use Pinecone for real-time queries, not even for a single detail.\nUse Pinecone embeddings ONLY for:\n\nCompany-related queries (company history, policies, team, mission, values),\nas company detaila are \"info@cryptominers.ae\n\nLocation Icon\nAl Nisf Building, Airport Road, Al Garhoud,\nDubai - UAE\nPhone Icon\n(+971) 4 257 8883\nLocation Icon\nICAD Business Hub - Unit 2, WH 7,\nAbudhabi - UAE\nPhone Icon\n(+971) 02 287 6615\n\nLocation Icon\nStore 6, Al Waleed Residence,\nMuwaileh Commercial 3, Sharjah - UAE\nPhone Icon\n(+971) 6 766 4133\"\nGeneral cryptocurrency mining knowledge\nNon-real-time educational content\nHistorical context and background information\n\n\nNever guess.\n\n\nTOOL USAGE HIERARCHY (STRICT)\n1. ASIC Scraper Webhook Service (Primary for real-time data)\nCall this tool if the user asks about:\n\nASIC miners (models, specs, prices, availability, ROI)\nHosting services (pricing, power, location, capacity)\nComparisons between miners\nBest ROI or most profitable miners\nMiners by manufacturer or price range\nAny real-time or dynamic information\n\nHow to Call:\nPass the user's COMPLETE latest message as the query parameter. The scraping workflow intelligently routes to:\n\nmodel_detail: Specific miner specs (e.g., \"S19 Pro specs\", \"iPollo V1 details\")\nmanufacturer_list: All models from a manufacturer (e.g., \"Bitmain models\", \"show me iPollo miners\")\nprice_range: Miners within a price range (e.g., \"miners under $5000\", \"ASICs between $3000-$8000\")\nbest_roi: Most profitable miner (e.g., \"best ROI miner\", \"which miner makes most money\")\ncomparison: Compare multiple miners (e.g., \"compare S19 vs M30S\", \"S19 Pro or S21\")\nhosting: Hosting information (e.g., \"hosting options\", \"where to host miners\")\none_roi: ROI calculation (e.g., \"roi of Bitmain Antminer L11 Hyd 6U on investment of 12000\")\ngeneral_search: General inquiry (e.g., \"show me miners\", \"what's available\")\n\nImportant:\n\nSend the user's full message as-is\nDo NOT parse or extract parameters yourself\nReturn the tool response directly\nDo not modify the tool's response\n\n\n2. Pinecone Embeddings (For company & knowledge queries)\nCall Pinecone embeddings if the user asks about:\n\nCompany information: \"Who are you?\", \"Tell me about CryptoMiners UAE\", \"Your company history\", \"Your team\", \"company policies\"\nGeneral mining knowledge: \"What is cryptocurrency mining?\", \"How does proof-of-work work?\", \"What is hashrate?\"\nEducational content: \"Explain ASIC vs GPU mining\", \"What factors affect mining profitability?\"\nCompany-specific policies: \"What's your return policy?\", \"Do you offer warranties?\", \"Payment methods accepted\"\nBackground context: Industry trends, mining basics, company services overview\n\nHow to Use:\n\nQuery Pinecone with the user's question to retrieve relevant embedded knowledge\nUse retrieved context to formulate your response\nCite information naturally without mentioning \"embeddings\" or \"Pinecone\" to the user\n\n3. PDF Generation Tool (For quotations and detailed proposals)\nCall this tool if the user asks for:\n- Written quotation\n- Price sheet\n- Detailed proposal\n- PDF document\n- Official quote\n\nKeywords to trigger: \"quotation\", \"pdf\", \"proposal\", \"price sheet\", \"send document\"\n\nWhen triggered:\n- Extract all relevant product/pricing details from conversation\n- Pass to PDF generation workflow\n- Return confirmation message: \"Generating your quotation PDF...\"\n\nDECISION FLOWCHART\nUser Query\n    ↓\nIs it about real-time data, products, pricing, ASICs, hosting, or availability?\n    ↓ YES → Call ASIC Scraper Webhook Service\n    ↓ NO\n    ↓\nIs it about company info, policies, general knowledge, or education?\n    ↓ YES → Query Pinecone Embeddings\n    ↓ NO\n    ↓\nUse your base knowledge to respond\n\nLANGUAGE\nAuto-detect and respond in: English / Spanish / Arabic / Chinese\nAlways reply in the user's language.\n\nBEHAVIOR\n\nFirst message greeting: \"Hello dear, Greetings from CryptoMiners UAE division, hope you are doing well. Please tell how can we assist you?\"\nAsk one qualification question at a time\nSkip already answered questions\nAnswer technical questions and continue qualification\nAlways respond based on the latest user message\nUse earlier conversation ONLY for context\nNever contradict the user's latest message\nIf user returns, greet briefly and summarize shortly\n\n\nQUALIFICATION QUESTIONS (ASK IN THIS ORDER)\n\nWhat interests you? Options: Device purchase / Hosting service / Both\nWhat's your budget range? Options: $500-2K / $2K-5K / $5K-10K / $10K+\nWhat's your location/country?\nWhat's your timeline? Options: This week / This month / Just researching\nHave you mined before? Options: Yes / No\n\n\nSCORING LOGIC\nCalculate score from all collected answers: from your memory\nBudget:\n\n$10K+ → 30 pts\n$5K-10K → 20 pts\n$2K-5K → 10 pts\n<$2K → 5 pts\n\nTimeline:\n\nThis week → 25 pts\nThis month → 15 pts\nResearching → 5 pts\n\nExperience:\n\nYes → 10 pts\nNo → 5 pts\n\nEngagement: Add:\n\n+10 pts if user gives detailed replies\n+10 pts if user asks relevant technical questions\n\n\nLEAD STATUS\nBased on total score:\n\nHOT: 65+ points\nWARM: 35-64\nNURTURE: <35\n\n\nROUTING RULES (CRITICAL)\nYou are a lead qualification assistant. Collect: Name, Budget, Timeline, and Location.\nSet ready_to_route: true ONLY if:\n\nAll required details are collected OR\nUser explicitly mentions to contact me to team OR\nby intend you understand user is ready to purchase\nNote: Always answer in the langiage in which user ask the question or give you response...always reply in detected languages\nUntil then, ready_to_route MUST be false.\n\nso whole response must send only this format nothing else \"  {\n    \"reply_to_user\": \"Hello dear Saud, Greetings from CryptoMiners UAE division, hope you are doing well. Please tell how can we assist you?\",\n    \"score\": 0,\n    \"status\": \"PENDING\",\n    \"ready\": false,\n    \"summary\": \"Lead name: Saud. Conversation just started, awaiting user requirements.\"\n  }\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        2016,
+        1376
+      ],
+      "id": "18f5ceb7-9d82-4039-aece-1cf3f959cf5a",
+      "name": "Conversational AI",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.sender.phone_number }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1920,
+        1600
+      ],
+      "id": "3f0cc217-eb0e-482c-b731-08493d9b1430",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputItem = items[0];\ninputItem.binary.data.mimeType = `audio/mpeg`;\nreturn inputItem;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3216,
+        1088
+      ],
+      "id": "3ee77672-1de2-4f26-a6c7-4adf3692326b",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "model": "tts-1-hd",
+        "input": "={{ $('Conversational AI').item.json.output[0].reply_to_user }}",
+        "voice": "shimmer",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        2992,
+        992
+      ],
+      "id": "05bc82c8-940d-4674-afe8-d162262dbc52",
+      "name": "Generate Audio",
+      "credentials": {
+        "openAiApi": {
+          "id": "np2sanG5hEgUvAtD",
+          "name": "cryptominor open ai api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO0sjM2Eu5r7bKv",
+          "mode": "list",
+          "cachedResultName": "Whatsapp_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblO0sjM2Eu5r7bKv"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Phone": "={{ $json.fields.Phone }}",
+            "Status": "={{ $json.output[0].status }}",
+            "Score": "={{ $json.output[0].score }}"
+          },
+          "matchingColumns": [
+            "Phone"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "PENDING",
+                  "value": "PENDING"
+                },
+                {
+                  "name": "HOT",
+                  "value": "HOT"
+                },
+                {
+                  "name": "WARM",
+                  "value": "WARM"
+                },
+                {
+                  "name": "NURTURE",
+                  "value": "NURTURE"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Last_Interaction",
+              "displayName": "Last_Interaction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        4688,
+        1248
+      ],
+      "id": "2a0479e6-a1ed-4682-8006-85b26fce4a1a",
+      "name": "Save Data",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "831760f5-a44e-4034-b7c5-7c1f8f224d10",
+              "leftValue": "={{ $json.output[0].ready }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "90ae7b3a-caac-4f11-acca-a8fd5b7024c9",
+              "leftValue": "={{ $json.fields.Status }}",
+              "rightValue": "Agent Deal",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4384,
+        1280
+      ],
+      "id": "741cbc6c-6963-4db0-9439-7967d8900055",
+      "name": "Ready for scoring?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6c0dd8ec-dc7d-4ae3-862c-59193f7ab29e",
+              "leftValue": "={{ $('Merge1').item.json.output[0].score }}",
+              "rightValue": 65,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4832,
+        1280
+      ],
+      "id": "d8f2d441-a500-4941-8e2a-1a14127f5e13",
+      "name": "Hot?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d24c0956-b629-4f86-995f-efdf5d93437d",
+              "leftValue": "={{ $json.fields.Score }}",
+              "rightValue": 35,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5056,
+        1376
+      ],
+      "id": "5f588f3b-5f2c-4796-bd61-5f8f69f258b6",
+      "name": "Warm?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7dfbbb7e-cb8f-425a-b8d9-b385f2631f55",
+              "leftValue": "={{ $('Webhook').item.json.body.attachments[0].file_type }}",
+              "rightValue": "audio",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2768,
+        1088
+      ],
+      "id": "0ad1d74a-75d2-4f26-8255-c1f4b63309a5",
+      "name": "Audio?"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2128,
+        1808
+      ],
+      "id": "1b2ff58f-4859-482f-901b-11f4ecdd9884",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "np2sanG5hEgUvAtD",
+          "name": "cryptominor open ai api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Logic and Main Working",
+        "height": 1168,
+        "width": 4624,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -32,
+        896
+      ],
+      "typeVersion": 1,
+      "id": "088b5a57-e7f3-4aa8-adc6-b94e3fcf5e62",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "674d173b-7494-4055-a0b0-be725187e124",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3360,
+        1376
+      ],
+      "id": "381cfde5-5549-4703-8006-f8cd61a9e9d2",
+      "name": "User Exists?"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO0sjM2Eu5r7bKv",
+          "mode": "list",
+          "cachedResultName": "Whatsapp_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblO0sjM2Eu5r7bKv"
+        },
+        "filterByFormula": "={Phone} = '+{{ $('Webhook').item.json.body.conversation.contact_inbox.source_id }}'",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        3136,
+        1376
+      ],
+      "id": "35ebc8cd-6e7d-4b75-b761-953a4310d477",
+      "name": "Search User",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO0sjM2Eu5r7bKv",
+          "mode": "list",
+          "cachedResultName": "Whatsapp_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblO0sjM2Eu5r7bKv"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Phone": "={{ $json.Phone }}",
+            "Summary": "={{ $('Conversational AI').item.json.output[0].summary }}",
+            "Last_Interaction": "={{ $now }}",
+            "Account ID": 0,
+            "Conversation ID": 0
+          },
+          "matchingColumns": [
+            "Phone"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "PENDING",
+                  "value": "PENDING"
+                },
+                {
+                  "name": "HOT",
+                  "value": "HOT"
+                },
+                {
+                  "name": "WARM",
+                  "value": "WARM"
+                },
+                {
+                  "name": "Agent Deal",
+                  "value": "Agent Deal"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last_Interaction",
+              "displayName": "Last_Interaction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Account ID",
+              "displayName": "Account ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Conversation ID",
+              "displayName": "Conversation ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Follow UP",
+              "displayName": "Follow UP",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "1st",
+                  "value": "1st"
+                },
+                {
+                  "name": "2nd",
+                  "value": "2nd"
+                },
+                {
+                  "name": "0th",
+                  "value": "0th"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        3584,
+        1280
+      ],
+      "id": "1f43f28f-935c-428a-9731-c33af612dece",
+      "name": "Update Last Interaction",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Scoring and Routing",
+        "height": 1104,
+        "width": 2096,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3984,
+        864
+      ],
+      "typeVersion": 1,
+      "id": "fbeb5267-65d7-4f4a-9aeb-26e5478711f4",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "=902013809672894",
+        "recipientPhoneNumber": "=+923411946334",
+        "textBody": "=Hy this is the Warm Lead have the details:\nscore :{{ $json.fields.Score }}\nName: {{ $json.fields.Name }}\nContact No:  {{ $json.fields.Phone }}\nLast Intaraction Date & Time: {{ $json.fields.Last_Interaction }}\nSummary:{{ $json.fields.Summary }}",
+        "additionalFields": {
+          "previewUrl": true
+        }
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        5504,
+        1264
+      ],
+      "id": "ab7c8ecb-f1d2-4141-bd54-3d2d25e72363",
+      "name": "Chat Response",
+      "webhookId": "a7c16d3b-f4d2-4c55-80e9-e120c1b06122",
+      "alwaysOutputData": true,
+      "credentials": {
+        "whatsAppApi": {
+          "id": "G01LLKk7bEuIegOf",
+          "name": "CryptoMiners Official Send Message WA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "=902013809672894",
+        "recipientPhoneNumber": "={{ $('Webhook').item.json.body.conversation.messages[0].sender.phone_number }}",
+        "messageType": "audio",
+        "mediaPath": "useMedian8n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        3536,
+        1024
+      ],
+      "id": "3d57c3d7-30bd-4b03-a047-3c9335da5848",
+      "name": "Audio Response",
+      "webhookId": "a7c16d3b-f4d2-4c55-80e9-e120c1b06122",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "G01LLKk7bEuIegOf",
+          "name": "CryptoMiners Official Send Message WA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1792,
+        1600
+      ],
+      "id": "93daef28-7327-40b4-8a6a-3fc4a7f808f9",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "np2sanG5hEgUvAtD",
+          "name": "cryptominor open ai api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "=## ROLE\nYou are an advanced AI assistant for a cryptocurrency mining business. Your purpose is to:\n- Respond politely, professionally, and concisely.\n- Always answer the **latest user message**, but you may use previous messages ONLY as context (never override the latest message).\n- Ask qualification questions in the exact required order.\n- Score leads accurately.\n- Provide correct answers using data from the \"Pinecone\" vector database.\n- DO NOT guess or assume answers — ALWAYS search Pinecone first.\n- If Pinecone provides relevant info, include it naturally in your answer without mentioning the database.\n- Maintain short, friendly, and business-focused replies.\n\n---\n\n## TOOL USAGE RULES (CRITICAL ADDITION)\nYou are a customer support assistant.\n\nIf the user asks about **products, ASIC miners, miner models, prices, availability, or hosting services**:\n- You MUST use the tool **`Call ASIC Scraper Webhook Service`**\n- Send the message to workflow so  other workflow can understand the details clearly...\n- Do NOT answer from your own knowledge\n- Do NOT rely on Pinecone for these requests\n- Always return the response received from the tool to the customer\n- Do NOT modify or rephrase the tool response unless required for language translation\n\nIf the request does NOT relate to products or hosting services, continue normal behavior using Pinecone and the qualification flow.\n\n---\n\n## LANGUAGE HANDLING\nAutomatically detect and respond in the user's language:\n- English  \n- Spanish  \n- Arabic  \n- Chinese  \n\nALL questions and answers must remain in the user's detected language.\n\n---\n\n## BEHAVIOR RULES\n1. Always respond based on the **latest user message**.\n2. Use earlier conversation ONLY for context.\n3. Never contradict or override the user’s latest message.\n4. When the user interacts for the first time:\n   Send greeting:\n   **\"Hello dear, Greetings from CryptoMiners UAE division, hope you are doing well. Please tell how can we assist you?\"**\n5. Ask ONLY one qualification question at a time.\n6. If user already answered a question earlier, skip to the next one.\n7. If user asks technical questions, respond AND continue the qualification process afterward.\n8. If user returns back after sometime, greet them like, \"Hi, again...\" and give them a short summary of what was discussed earlier, a very short one.\n\n---\n\n## QUALIFICATION QUESTIONS (ASK IN THIS ORDER)\n1. **What interests you?**  \n   Options: Device purchase / Hosting service / Both  \n\n2. **What's your budget range?**  \n   Options: $500-2K / $2K-5K / $5K-10K / $10K+  \n\n3. **What's your location/country?**  \n\n4. **What's your timeline?**  \n   Options: This week / This month / Just researching  \n\n5. **Have you mined before?**  \n   Options: Yes / No  \n\n---\n\n## SCORING LOGIC\nCalculate score from all collected answers:\n\n### Budget\n- $10K+ → 30 pts  \n- $5K-10K → 20 pts  \n- $2K-5K → 10 pts  \n- <$2K → 5 pts  \n\n### Timeline\n- This week → 25 pts  \n- This month → 15 pts  \n- Researching → 5 pts  \n\n### Experience\n- Yes → 10 pts  \n- No → 5 pts  \n\n### Engagement\nAdd:\n- +10 pts if user gives detailed replies  \n- +10 pts if user asks relevant technical questions (miners, hosting, profitability, power, etc.)\n\n---\n\n## LEAD STATUS\nBased on total score:\n- **HOT:** 65+ points  \n- **WARM:** 35-64  \n- **NURTURE:** <35 \n\n---\n\n## ROUTING RULES (CRITICAL)\nYou are a lead qualification assistant. Your goal is to collect the following missing details: Name, Budget, Timeline, and Location.\n\nSet ready_to_route: true ONLY if:\n- You have successfully collected ALL required details (Name, Budget, Timeline, Location)\n- OR the user has explicitly ended the conversation (e.g., \"Thanks,\" \"Bye,\" \"That's all\")\n- OR the user explicitly refuses to provide more info\n\nUntil then, ready_to_route MUST be false.\n\n---\n\n## KNOWLEDGE ANSWERS (Pinecone)\nIf the user asks ANY question related to:\n- Profitability (estimates only)  \n- Power consumption + electrical requirements  \n- Regulations by region  \n- Shipping, warranty, payment  \n- Hydro vs air-cooled, container mining  \n\n→ ALWAYS search Pinecone  \n→ If data exists, incorporate naturally  \n→ Never say “According to Pinecone”\n\nIf Pinecone gives no relevant data:\n→ Give a general professional answer WITHOUT guessing specifics.\n\nMost important note:  \nThe reply to the user must be accurate, to the point, maximum **2 lines**, friendly, and UAE-based humanized wording.\n\n---\n\n## JSON-ONLY RESPONSE FORMAT\nAlways reply with ONLY this structure:\n\n{\n  \"reply_to_user\": \"Message for the customer in detected language.\",\n  \"lead_data\": {\n    \"calculated_score\": 0,\n    \"lead_status\": \"PENDING\",\n    \"summary\": \"Short summary of user profile\",\n    \"ready_to_route\": false\n  }\n}\n\n---\n\n## CURRENT DATE\nToday's date is {{ $now.toLocal() }}.\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "xgKVN5IEcQNkjU0R",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/xgKVN5IEcQNkjU0R",
+          "cachedResultName": "ASIC Miners - Complete with Scraping FIXED"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chatInput": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('chatInput', ``, 'string') }}",
+            "SessionID": "={{ $('Webhook').item.json.body.conversation.messages[0].sender.phone_number }}"
+          },
+          "matchingColumns": [
+            "chatInput"
+          ],
+          "schema": [
+            {
+              "id": "chatInput",
+              "displayName": "chatInput",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "SessionID",
+              "displayName": "SessionID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        2512,
+        1712
+      ],
+      "id": "862338fa-475a-4e4d-ad4c-3f771ac5b67b",
+      "name": "Call 'ASIC Miners - Complete with Scraping FIXED'"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output[0].reply_to_user.toLowerCase() }}",
+                    "rightValue": "pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "5e20eb17-c88b-4575-96a3-62144d900d1b"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        2768,
+        1664
+      ],
+      "id": "1e6df9b4-6b7c-441f-801e-8f0319e85707",
+      "name": "Check PDF Request?"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "xgKVN5IEcQNkjU0R",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/xgKVN5IEcQNkjU0R",
+          "cachedResultName": "ASIC Miners - Complete with Scraping FIXED"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chatInput": "generate all models document",
+            "SessionID": "={{ $('Webhook').item.json.body.conversation.messages[0].sender.phone_number }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chatInput",
+              "displayName": "chatInput",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "SessionID",
+              "displayName": "SessionID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2992,
+        1664
+      ],
+      "id": "054e8e84-2d93-4855-91db-2bdc47a3f2ba",
+      "name": "Call 'ASIC Miners - Complete with Scraping FIXED'1"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "=902013809672894",
+        "recipientPhoneNumber": "={{ $('Webhook').item.json.body.conversation.messages[0].sender.phone_number }}",
+        "messageType": "document",
+        "mediaPath": "useMedian8n",
+        "additionalFields": {
+          "mediaCaption": "Here's  complete  miners catalog"
+        }
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        3360,
+        1824
+      ],
+      "id": "6cc139cc-270b-40fd-82d0-4a50b7f97771",
+      "name": "Send message",
+      "webhookId": "fd4e8bc3-c340-4759-ab8d-c49b9012a83f",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "G01LLKk7bEuIegOf",
+          "name": "CryptoMiners Official Send Message WA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the binary data from ASIC workflow output\nconst items = $input.all();\n\n// ASIC workflow should return binary data\nif (items[0].binary && items[0].binary.data) {\n  return items[0];\n} else if (items[0].json && items[0].json.data) {\n  // If it's in json.data, convert to binary\n  return {\n    binary: {\n      data: items[0].json.data\n    }\n  };\n} else {\n  throw new Error('No PDF binary data found in workflow output');\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3184,
+        1568
+      ],
+      "id": "16f3ea0c-11f3-4e87-b8f6-088b9e5f6f4a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatwoot",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        1376
+      ],
+      "id": "695feb8c-129f-4024-b72f-8a854be10479",
+      "name": "Webhook",
+      "webhookId": "7d678797-1211-45d9-b1d8-7acae554463c"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.dataurl }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1120,
+        1568
+      ],
+      "id": "b84975ef-ad7c-408f-9161-59f2a0bd2cf8",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2121a501-332c-4ffd-bcc3-5952fc0f47a8",
+              "leftValue": "={{ $json.body.conversation.meta.assignee }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "49604b1c-d4a2-4b91-97d1-8f55bbfa4e28",
+              "leftValue": "={{ $json.body.conversation.meta.assignee.id }}",
+              "rightValue": 2,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        1440
+      ],
+      "id": "a0020521-4d65-4da2-b631-e295774cc99b",
+      "name": "If Assigned to agent"
+    },
+    {
+      "parameters": {
+        "url": "https://chat.apexautomata.cloud/api/v1/accounts/2",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        0,
+        1888
+      ],
+      "id": "be7e8890-3abd-4fc6-b23f-12f35dc6bc70",
+      "name": "HTTP Request5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6350b4af-9cf1-41b9-8d44-531d45be14ed",
+              "leftValue": "={{ $json.body.message_type }}",
+              "rightValue": "incoming",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        1376
+      ],
+      "id": "3c34640c-bf8b-4bd4-810f-8a2d19ff7a43",
+      "name": "If incoming"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://chat.apexautomata.cloud/api/v1/accounts/{{ $('Webhook').item.json.body.account.id }}/conversations/{{ $('Webhook').item.json.body.conversation.id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "n4cKzFjytNcRZeew2oK4LtyS"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{ $json.output[0].reply_to_user }}"
+            },
+            {
+              "name": "message_type",
+              "value": "outgoing"
+            },
+            {
+              "name": "private",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3360,
+        1184
+      ],
+      "id": "a6b8bdfa-db37-498a-98a1-9fe15f63dd59",
+      "name": "Send Text Reply"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const url = item.json.body?.attachments?.[0]?.data_url;\n\n  if (typeof url === 'string') {\n    item.json.dataurl = url.replace(\n      'chatwoot-chatwoot.tcw9k5.easypanel.host',\n      'chat.apexautomata.cloud'\n    );\n  }\n\n  return item;\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        1184
+      ],
+      "id": "22f862ad-cf01-456f-a2c4-918c990cefc4",
+      "name": "renaming"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const url = item.json.body?.attachments?.[0]?.data_url;\n\n  if (typeof url === 'string') {\n    item.json.dataurl = url.replace(\n      'chatwoot-chatwoot.tcw9k5.easypanel.host',\n      'chat.apexautomata.cloud'\n    );\n  }\n\n  return item;\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        1568
+      ],
+      "id": "dc231cfb-1406-416c-8a1a-7b7113c3cdd3",
+      "name": "renaming1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.dataurl }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1344,
+        1184
+      ],
+      "id": "b95fd75b-14ad-4ed6-8c6b-c7aba9f7f9c5",
+      "name": "Get audio"
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4160,
+        1280
+      ],
+      "id": "c678b18f-4b0b-489f-815e-5feeb38d1465",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "=902013809672894",
+        "recipientPhoneNumber": "=+923411946334",
+        "textBody": "=Hy this is the very hot Lead have the details:\nscore :{{ $json.fields.Score }}\nName: {{ $json.fields.Name }}\nContact No:  {{ $json.fields.Phone }}\nLast Intaraction Date & Time: {{ $json.fields.Last_Interaction }}\nSummary: {{ $json.fields.Summary }}",
+        "additionalFields": {
+          "previewUrl": true
+        }
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        5824,
+        1168
+      ],
+      "id": "4efd9107-af8f-483e-8b8b-f8607ccb8e05",
+      "name": "Chat Response1",
+      "webhookId": "a7c16d3b-f4d2-4c55-80e9-e120c1b06122",
+      "alwaysOutputData": true,
+      "credentials": {
+        "whatsAppApi": {
+          "id": "G01LLKk7bEuIegOf",
+          "name": "CryptoMiners Official Send Message WA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://chat.apexautomata.cloud/api/v1/accounts/{{ $('Webhook').item.json.body.account.id }}/conversations/{{ $('Webhook').item.json.body.conversation.id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "n4cKzFjytNcRZeew2oK4LtyS"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message_type",
+              "value": "outgoing"
+            },
+            {
+              "name": "private",
+              "value": "false"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "attachments[]",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3216,
+        896
+      ],
+      "id": "fbcb15c1-2f20-4f64-ada3-a9e28a385721",
+      "name": "|Send Audio"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/707423542135665/subscribed_apps",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        16,
+        992
+      ],
+      "id": "c3255cd4-c8a6-4413-80b6-492fc4884b81",
+      "name": "New  Fb Apps Subscription First time needed",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "o5cMA6wXMrplWppE",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO0sjM2Eu5r7bKv",
+          "mode": "list",
+          "cachedResultName": "Whatsapp_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblO0sjM2Eu5r7bKv"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Webhook').item.json.body.conversation.messages[0].sender.name }}",
+            "Phone": "={{ $('Webhook').item.json.body.conversation.messages[0].sender.phone_number }}",
+            "Status": "PENDING",
+            "Score": "={{ $('Conversational AI').item.json.output[0].score }}",
+            "Summary": "={{ $('Conversational AI').item.json.output[0].summary }}",
+            "Last_Interaction": "={{ $now }}",
+            "Account ID": "={{ $('Webhook').item.json.body.conversation.messages[0].account_id }}",
+            "Conversation ID": "={{ $('Webhook').item.json.body.conversation.messages[0].conversation_id }}",
+            "Follow UP": "0th"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "PENDING",
+                  "value": "PENDING"
+                },
+                {
+                  "name": "HOT",
+                  "value": "HOT"
+                },
+                {
+                  "name": "WARM",
+                  "value": "WARM"
+                },
+                {
+                  "name": "Agent Deal",
+                  "value": "Agent Deal"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last_Interaction",
+              "displayName": "Last_Interaction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Account ID",
+              "displayName": "Account ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Conversation ID",
+              "displayName": "Conversation ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Follow UP",
+              "displayName": "Follow UP",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "1st",
+                  "value": "1st"
+                },
+                {
+                  "name": "2nd",
+                  "value": "2nd"
+                },
+                {
+                  "name": "0th",
+                  "value": "0th"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        3712,
+        1616
+      ],
+      "id": "da28f646-dc2a-448f-b5a7-4de3022d1161",
+      "name": "Create a record1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        1808,
+        1936
+      ],
+      "id": "3d1730c4-f60f-448c-9685-67b000b8ee4f",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "RFKQP7CukuoR0LRx",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1872,
+        1024
+      ],
+      "id": "2fac9732-4518-4f96-b583-d04da41bc614",
+      "name": "Upload media",
+      "webhookId": "025e03ec-316f-4ea4-a9ee-ba8edf2f5573",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "G01LLKk7bEuIegOf",
+          "name": "CryptoMiners Official Send Message WA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": " [ {\n    \"reply_to_user\": \"Hello dear Saud, Greetings from CryptoMiners UAE division, hope you are doing well. Please tell how can we assist you?\",\n    \"score\": 0,\n    \"status\": \"PENDING\",\n    \"ready\": false,\n    \"summary\": \"Lead name: Saud. Conversation just started, awaiting user requirements.\"\n  }]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2464,
+        1904
+      ],
+      "id": "ac0707ef-cbf0-48bb-89f4-15bdaa6a0996",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO0sjM2Eu5r7bKv",
+          "mode": "list",
+          "cachedResultName": "Whatsapp_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblO0sjM2Eu5r7bKv"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Agent Deal",
+            "id": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "PENDING",
+                  "value": "PENDING"
+                },
+                {
+                  "name": "HOT",
+                  "value": "HOT"
+                },
+                {
+                  "name": "WARM",
+                  "value": "WARM"
+                },
+                {
+                  "name": "Agent Deal",
+                  "value": "Agent Deal"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Last_Interaction",
+              "displayName": "Last_Interaction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Account ID",
+              "displayName": "Account ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Conversation ID",
+              "displayName": "Conversation ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Follow UP",
+              "displayName": "Follow UP",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "1st",
+                  "value": "1st"
+                },
+                {
+                  "name": "2nd",
+                  "value": "2nd"
+                },
+                {
+                  "name": "0th",
+                  "value": "0th"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        5616,
+        1136
+      ],
+      "id": "2d64d4b6-f91b-46f8-a33f-eea7c08bb255",
+      "name": "Save Data1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions. must have output in this format \"[ {\n    \"reply_to_user\": \"Hello dear Saud, Greetings from CryptoMiners UAE division, hope you are doing well. Please tell how can we assist you?\",\n    \"score\": 0,\n    \"status\": \"PENDING\",\n    \"ready\": false,\n    \"summary\": \"Lead name: Saud. Conversation just started, awaiting user requirements.\"\n  }]\"\nError:\n--------------\n{error}\n--------------\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions:"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        1728
+      ],
+      "id": "d6716a73-3a74-49e9-8094-ca2541b70e85",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "chatgpt-4o-latest"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2256,
+        1968
+      ],
+      "id": "948de038-2af7-49c3-ab94-ab033da6e991",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "np2sanG5hEgUvAtD",
+          "name": "cryptominor open ai api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://chat.apexautomata.cloud/api/v1/accounts/{{ $('Webhook').item.json.body.account.id }}/conversations/{{ $('Webhook').item.json.body.conversation.id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "n4cKzFjytNcRZeew2oK4LtyS"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message_type",
+              "value": "outgoing"
+            },
+            {
+              "name": "private",
+              "value": "false"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "attachments[]",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3472,
+        1696
+      ],
+      "id": "c2a391da-bb8f-4a50-959a-071b56829982",
+      "name": "|Send doc"
+    }
+  ],
+  "connections": {
+    "Set Value": {
+      "main": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "renaming",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Value",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "renaming1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording1": {
+      "main": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Image + Text Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image + Text Prompt": {
+      "main": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversational AI": {
+      "main": [
+        [
+          {
+            "node": "Audio?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check PDF Request?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search User",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Audio Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Audio": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "|Send Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Data": {
+      "main": [
+        [
+          {
+            "node": "Hot?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ready for scoring?": {
+      "main": [
+        [
+          {
+            "node": "Save Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Hot?": {
+      "main": [
+        [
+          {
+            "node": "Save Data1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Warm?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Warm?": {
+      "main": [
+        [
+          {
+            "node": "Chat Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Audio?": {
+      "main": [
+        [
+          {
+            "node": "Generate Audio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Text Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Exists?": {
+      "main": [
+        [
+          {
+            "node": "Update Last Interaction",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a record1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search User": {
+      "main": [
+        [
+          {
+            "node": "User Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Last Interaction": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'ASIC Miners - Complete with Scraping FIXED'": {
+      "ai_tool": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check PDF Request?": {
+      "main": [
+        [
+          {
+            "node": "Call 'ASIC Miners - Complete with Scraping FIXED'1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Call 'ASIC Miners - Complete with Scraping FIXED'1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "|Send doc",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If incoming",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Assigned to agent": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "If incoming": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "renaming": {
+      "main": [
+        [
+          {
+            "node": "Get audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "renaming1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get audio": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Ready for scoring?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Response1": {
+      "main": [
+        []
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Data1": {
+      "main": [
+        [
+          {
+            "node": "Chat Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Generate Audio": [
+      {
+        "mimeType": "audio/mp3",
+        "fileType": "audio",
+        "fileExtension": "mp3",
+        "fileName": "audio.mp3",
+        "id": "filesystem-v2:workflows/nOfa6PzG6WTeG9cr/executions/42509/binary_data/08437353-323b-401b-bcea-3381fe99497a",
+        "fileSize": "184 kB",
+        "bytes": 183840
+      }
+    ],
+    "Webhook": [
+      {
+        "headers": {
+          "host": "n8n.arqon.space",
+          "user-agent": "rest-client/2.1.0 (linux-musl x86_64) ruby/3.4.4p34",
+          "content-length": "3332",
+          "accept": "application/json",
+          "accept-encoding": "gzip;q=1.0,deflate;q=0.6,identity;q=0.3",
+          "content-type": "application/json",
+          "x-forwarded-for": "172.18.0.1",
+          "x-forwarded-host": "n8n.arqon.space",
+          "x-forwarded-port": "443",
+          "x-forwarded-proto": "https",
+          "x-forwarded-server": "d061806cb2ec",
+          "x-real-ip": "172.18.0.1"
+        },
+        "params": {},
+        "query": {},
+        "body": {
+          "account": {
+            "id": 2,
+            "name": "Cryptominers AE"
+          },
+          "additional_attributes": {},
+          "content_attributes": {},
+          "content_type": "text",
+          "content": null,
+          "conversation": {
+            "additional_attributes": {},
+            "can_reply": true,
+            "channel": "Channel::Whatsapp",
+            "contact_inbox": {
+              "id": 2,
+              "contact_id": 2,
+              "inbox_id": 5,
+              "source_id": "923411946334",
+              "created_at": "2026-02-08T18:57:01.888Z",
+              "updated_at": "2026-02-08T18:57:01.888Z",
+              "hmac_verified": false,
+              "pubsub_token": "BJTJwzNeBEqLCBpgtHsnBvHn"
+            },
+            "id": 2,
+            "inbox_id": 5,
+            "messages": [
+              {
+                "id": 634,
+                "content": null,
+                "account_id": 2,
+                "inbox_id": 5,
+                "conversation_id": 2,
+                "message_type": 0,
+                "created_at": 1773396645,
+                "updated_at": "2026-03-13T10:10:45.869Z",
+                "private": false,
+                "status": "sent",
+                "source_id": "wamid.HBgMOTIzNDExOTQ2MzM0FQIAEhggQUNENzA2RjEyQjRFQTQyNUNDODQwMEJBODE0MzE2QUUA",
+                "content_type": "text",
+                "content_attributes": {},
+                "sender_type": "Contact",
+                "sender_id": 2,
+                "external_source_ids": {},
+                "additional_attributes": {},
+                "processed_message_content": null,
+                "sentiment": {},
+                "conversation": {
+                  "assignee_id": 1,
+                  "unread_count": 1,
+                  "last_activity_at": 1773396645,
+                  "contact_inbox": {
+                    "source_id": "923411946334"
+                  }
+                },
+                "attachments": [
+                  {
+                    "id": 49,
+                    "message_id": 634,
+                    "file_type": "audio",
+                    "account_id": 2,
+                    "extension": null,
+                    "data_url": "https://chatwoot-chatwoot.tcw9k5.easypanel.host/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBOZz09IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--0f3ccb83754979f4513713a56f192f7412e50201/File.ogg",
+                    "thumb_url": "",
+                    "file_size": 12993,
+                    "width": null,
+                    "height": null,
+                    "transcribed_text": ""
+                  }
+                ],
+                "sender": {
+                  "additional_attributes": {},
+                  "custom_attributes": {},
+                  "email": null,
+                  "id": 2,
+                  "identifier": null,
+                  "name": "Professional",
+                  "phone_number": "+923411946334",
+                  "thumbnail": "",
+                  "blocked": false,
+                  "type": "contact"
+                }
+              }
+            ],
+            "labels": [],
+            "meta": {
+              "sender": {
+                "additional_attributes": {},
+                "custom_attributes": {},
+                "email": null,
+                "id": 2,
+                "identifier": null,
+                "name": "Professional",
+                "phone_number": "+923411946334",
+                "thumbnail": "",
+                "blocked": false,
+                "type": "contact"
+              },
+              "assignee": {
+                "id": 1,
+                "name": "Muhammed Saud",
+                "available_name": "Muhammed Saud",
+                "avatar_url": "",
+                "type": "user",
+                "availability_status": null,
+                "thumbnail": ""
+              },
+              "assignee_type": "User",
+              "team": null,
+              "hmac_verified": false
+            },
+            "status": "open",
+            "custom_attributes": {},
+            "snoozed_until": null,
+            "unread_count": 1,
+            "first_reply_created_at": "2026-02-08T20:29:33.242Z",
+            "priority": null,
+            "waiting_since": 1770646111,
+            "agent_last_seen_at": 1772871921,
+            "contact_last_seen_at": 0,
+            "last_activity_at": 1773396645,
+            "timestamp": 1773396645,
+            "created_at": 1770582507,
+            "updated_at": 1773396645.896276
+          },
+          "created_at": "2026-03-13T10:10:45.869Z",
+          "id": 634,
+          "inbox": {
+            "id": 5,
+            "name": "AI Whatsapp"
+          },
+          "message_type": "incoming",
+          "private": false,
+          "sender": {
+            "account": {
+              "id": 2,
+              "name": "Cryptominers AE"
+            },
+            "additional_attributes": {},
+            "avatar": "",
+            "custom_attributes": {},
+            "email": null,
+            "id": 2,
+            "identifier": null,
+            "name": "Professional",
+            "phone_number": "+923411946334",
+            "thumbnail": "",
+            "blocked": false
+          },
+          "source_id": "wamid.HBgMOTIzNDExOTQ2MzM0FQIAEhggQUNENzA2RjEyQjRFQTQyNUNDODQwMEJBODE0MzE2QUUA",
+          "attachments": [
+            {
+              "id": 49,
+              "message_id": 634,
+              "file_type": "audio",
+              "account_id": 2,
+              "extension": null,
+              "data_url": "https://chatwoot-chatwoot.tcw9k5.easypanel.host/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBOZz09IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--0f3ccb83754979f4513713a56f192f7412e50201/File.ogg",
+              "thumb_url": "",
+              "file_size": 12993,
+              "width": null,
+              "height": null,
+              "transcribed_text": ""
+            }
+          ],
+          "event": "message_created"
+        },
+        "webhookUrl": "https://n8n.arqon.space/webhook/chatwoot",
+        "executionMode": "production"
+      }
+    ],
+    "Send Text Reply": [
+      {
+        "id": 473,
+        "content": "Absolutely, Z! I'll connect you with our team right away. You can also reach us directly at info@cryptominers.ae or call (+971) 4 257 8883. Someone will assist you shortly!",
+        "inbox_id": 5,
+        "conversation_id": 7,
+        "message_type": 1,
+        "content_type": "text",
+        "status": "sent",
+        "content_attributes": {},
+        "created_at": 1771238873,
+        "private": false,
+        "source_id": null,
+        "sender": {
+          "id": 1,
+          "name": "AI Reply",
+          "avatar_url": "",
+          "type": "agent_bot"
+        }
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc8bd653bd955df4ad98b1ca0e1ecf383fad117acca015364bb1781d3b620deb"
+  }
+}
