@@ -1,0 +1,502 @@
+{
+  "name": "Follow-up Workflow - TESTING VERSION (2s + 5s)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Rule 1: No Reply After 72 Hours (Re-Engagement)\n",
+        "height": 656,
+        "width": 1296
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1088,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "f6ec1c2b-c3f7-4ed2-9d0d-5379ec8d692f",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Rule 2: Low Score + No Engagement (The Cleanup)",
+        "height": 400,
+        "width": 640,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        208,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "8fe6210b-164f-438b-9495-217f1cedc88e",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "### We typically don't message these people; we just silently move them out of the pipeline so we focus on better leads.",
+        "height": 144,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        880,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "f5186480-4efc-44cd-8490-58f862568db4",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1040,
+        224
+      ],
+      "id": "865b77bd-c3a4-42e1-ace5-8506b777b8d1",
+      "name": "Schedule (Every 10sec - TESTING)"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO0sjM2Eu5r7bKv",
+          "mode": "list",
+          "cachedResultName": "Whatsapp_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblO0sjM2Eu5r7bKv"
+        },
+        "filterByFormula": "=AND(\n  {Status} = 'PENDING',\n  DATETIME_DIFF(NOW(), {Last_Interaction}, 'seconds') >= 2,\n  DATETIME_DIFF(NOW(), {Last_Interaction}, 'seconds') < 15\n)",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -800,
+        112
+      ],
+      "id": "9ebe8885-5d3f-4c76-a369-8661555a6026",
+      "name": "List Pending (2sec - TESTING)",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO0sjM2Eu5r7bKv",
+          "mode": "list",
+          "cachedResultName": "Whatsapp_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblO0sjM2Eu5r7bKv"
+        },
+        "filterByFormula": "=AND(\n  {Status} = 'FOLLOW UP 1 SENT',\n  DATETIME_DIFF(NOW(), {Last_Interaction}, 'seconds') >= 5,\n  DATETIME_DIFF(NOW(), {Last_Interaction}, 'seconds') < 20\n)",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -800,
+        320
+      ],
+      "id": "7575d78d-9a59-4177-8a76-9b36e0001c3d",
+      "name": "List Follow-up (5sec - TESTING)",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate personalized 2-second follow-up message based on summary\nconst items = $input.all();\nconst outputs = [];\n\nfor (const item of items) {\n  const summary = item.json.Summary || '';\n  const name = item.json.Name || 'there';\n  const phone = item.json.Phone;\n  const recordId = item.json.id;\n  \n  let message = '';\n  \n  // Analyze summary and create contextual message\n  if (summary.toLowerCase().includes('price') || summary.toLowerCase().includes('cost')) {\n    message = `Hi ${name}! 👋\\n\\nI noticed you were interested in our pricing. I wanted to follow up and see if you had any questions about our packages or payment plans?\\n\\nWe have some flexible options that might work perfectly for you. Would you like me to share more details?`;\n  } \n  else if (summary.toLowerCase().includes('ipollo') || summary.toLowerCase().includes('miner') || summary.toLowerCase().includes('device')) {\n    message = `Hi ${name}! 👋\\n\\nFollowing up on your interest in our mining equipment. Did you have any specific questions about the device specifications, profitability, or setup process?\\n\\nI'm here to help you make the best decision for your mining needs!`;\n  }\n  else if (summary.toLowerCase().includes('egypt') || summary.toLowerCase().includes('location') || summary.toLowerCase().includes('shipping')) {\n    message = `Hi ${name}! 👋\\n\\nJust checking in regarding your inquiry. We do handle international shipping and can discuss delivery options for your location.\\n\\nWould you like to know more about shipping costs and timelines?`;\n  }\n  else if (summary.toLowerCase().includes('service') || summary.toLowerCase().includes('interested')) {\n    message = `Hi ${name}! 👋\\n\\nThanks for your interest in our services! I wanted to follow up and see if you had any questions or needed more information.\\n\\nI'm happy to provide any details that would help with your decision. What would be most helpful for you?`;\n  }\n  else if (summary.toLowerCase().includes('facebook') || summary.toLowerCase().includes('social')) {\n    message = `Hi ${name}! 👋\\n\\nThanks for reaching out! I wanted to follow up on your inquiry. How can I assist you with your crypto mining needs today?\\n\\nFeel free to ask me anything about our products, services, or mining in general!`;\n  }\n  else {\n    // Generic follow-up for unclear summaries\n    message = `Hi ${name}! 👋\\n\\nI wanted to check in and see if you had any questions about crypto mining or our services.\\n\\nI'm here to help! What information would be most valuable for you right now?`;\n  }\n  \n  outputs.push({\n    json: {\n      phone: phone,\n      message: message,\n      name: name,\n      summary: summary,\n      recordId: recordId\n    }\n  });\n}\n\nreturn outputs;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        112
+      ],
+      "id": "cb2d3abe-7fcc-4fe1-ada5-29c907403419",
+      "name": "Generate 2sec Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate 5-second continuation follow-up\nconst items = $input.all();\nconst outputs = [];\n\nfor (const item of items) {\n  const summary = item.json.Summary || '';\n  const name = item.json.Name || 'there';\n  const phone = item.json.Phone;\n  const recordId = item.json.id;\n  \n  let message = '';\n  \n  // Create continuation message based on initial interest\n  if (summary.toLowerCase().includes('price') || summary.toLowerCase().includes('cost')) {\n    message = `Hi ${name},\\n\\nI wanted to share something that might interest you! 💎\\n\\nWe're currently offering special payment plans that make it easier to get started with crypto mining. Many of our clients have found these flexible options really helpful.\\n\\nWould you like me to explain the options? No pressure at all - just want to make sure you have all the information you need!`;\n  } \n  else if (summary.toLowerCase().includes('ipollo') || summary.toLowerCase().includes('miner') || summary.toLowerCase().includes('device')) {\n    message = `Hi ${name},\\n\\nQuick update! ⛏️\\n\\nI wanted to share that we have detailed profitability calculators and setup guides that show exactly what you can expect from our miners.\\n\\nWould you like me to send you some real-world examples from our current clients? It might help you visualize the potential returns!`;\n  }\n  else if (summary.toLowerCase().includes('egypt') || summary.toLowerCase().includes('location') || summary.toLowerCase().includes('shipping')) {\n    message = `Hi ${name},\\n\\nI wanted to follow up with good news! 🌍\\n\\nWe've successfully shipped to many international locations and have streamlined the process. I can provide you with estimated shipping costs and delivery times specific to your location.\\n\\nShould I prepare that information for you?`;\n  }\n  else {\n    // Generic 5-second follow-up\n    message = `Hi ${name},\\n\\nI hope I'm not bothering you! I just wanted to make sure you have everything you need to make an informed decision about crypto mining.\\n\\nIf you have any questions at all - even if they seem basic - I'm here to help. Sometimes the smallest questions lead to the best clarity! 😊\\n\\nWhat can I help you with?`;\n  }\n  \n  outputs.push({\n    json: {\n      phone: phone,\n      message: message,\n      name: name,\n      summary: summary,\n      recordId: recordId\n    }\n  });\n}\n\nreturn outputs;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        320
+      ],
+      "id": "e9eb6c7d-f477-4edd-9a8f-1a234b41079c",
+      "name": "Generate 5sec Message"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "=913013088552597",
+        "recipientPhoneNumber": "=923213907213",
+        "textBody": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        112
+      ],
+      "id": "823c1c80-5082-49cb-8c2c-084f575e0db6",
+      "name": "Send 2sec Follow-up",
+      "webhookId": "2sec-followup",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "G01LLKk7bEuIegOf",
+          "name": "CryptoMiners Official Send Message WA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "913013088552597",
+        "recipientPhoneNumber": "={{ $json.phone }}",
+        "textBody": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        320
+      ],
+      "id": "26fc6d11-33a7-4609-8754-c530359a67b2",
+      "name": "Send 5sec Follow-up",
+      "webhookId": "5sec-followup",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "G01LLKk7bEuIegOf",
+          "name": "CryptoMiners Official Send Message WA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO0sjM2Eu5r7bKv",
+          "mode": "list",
+          "cachedResultName": "Whatsapp_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblO0sjM2Eu5r7bKv"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.recordId }}",
+            "Status": "FOLLOW UP 1 SENT"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "PENDING",
+                  "value": "PENDING"
+                },
+                {
+                  "name": "HOT",
+                  "value": "HOT"
+                },
+                {
+                  "name": "WARM",
+                  "value": "WARM"
+                },
+                {
+                  "name": "NURTURE",
+                  "value": "NURTURE"
+                },
+                {
+                  "name": "FOLLOW UP 1 SENT",
+                  "value": "FOLLOW UP 1 SENT"
+                },
+                {
+                  "name": "FOLLOW UP 2 SENT",
+                  "value": "FOLLOW UP 2 SENT"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        112
+      ],
+      "id": "3291b97f-ce46-447e-a888-93c4850cb3c5",
+      "name": "Update Status (2sec)",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblO0sjM2Eu5r7bKv",
+          "mode": "list",
+          "cachedResultName": "Whatsapp_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblO0sjM2Eu5r7bKv"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.recordId }}",
+            "Status": "FOLLOW UP 2 SENT"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "PENDING",
+                  "value": "PENDING"
+                },
+                {
+                  "name": "HOT",
+                  "value": "HOT"
+                },
+                {
+                  "name": "WARM",
+                  "value": "WARM"
+                },
+                {
+                  "name": "NURTURE",
+                  "value": "NURTURE"
+                },
+                {
+                  "name": "FOLLOW UP 1 SENT",
+                  "value": "FOLLOW UP 1 SENT"
+                },
+                {
+                  "name": "FOLLOW UP 2 SENT",
+                  "value": "FOLLOW UP 2 SENT"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        320
+      ],
+      "id": "843ee8f7-65e0-4947-8166-92cbe6af44d6",
+      "name": "Update Status (5sec)",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule (Every 10sec - TESTING)": {
+      "main": [
+        [
+          {
+            "node": "List Pending (2sec - TESTING)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "List Follow-up (5sec - TESTING)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Pending (2sec - TESTING)": {
+      "main": [
+        [
+          {
+            "node": "Generate 2sec Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Follow-up (5sec - TESTING)": {
+      "main": [
+        [
+          {
+            "node": "Generate 5sec Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate 2sec Message": {
+      "main": [
+        [
+          {
+            "node": "Send 2sec Follow-up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate 5sec Message": {
+      "main": [
+        [
+          {
+            "node": "Send 5sec Follow-up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send 2sec Follow-up": {
+      "main": [
+        [
+          {
+            "node": "Update Status (2sec)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send 5sec Follow-up": {
+      "main": [
+        [
+          {
+            "node": "Update Status (5sec)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "da26267c-36f1-463c-87d1-62213cadc27d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc8bd653bd955df4ad98b1ca0e1ecf383fad117acca015364bb1781d3b620deb"
+  },
+  "id": "dDpamwa0eLrjgucC",
+  "tags": [
+    {
+      "updatedAt": "2026-02-09T17:48:37.301Z",
+      "createdAt": "2026-02-09T17:48:37.301Z",
+      "id": "q40dfNeEt8zvzC2H",
+      "name": "Discard"
+    }
+  ]
+}

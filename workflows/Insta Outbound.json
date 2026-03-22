@@ -1,0 +1,716 @@
+{
+  "name": "Insta Outbound",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        -32
+      ],
+      "id": "bbf82ba9-0f48-4da8-b617-008cf7b4da1e",
+      "name": "Schedule (15m)"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIp6DJlBHiehV4",
+          "mode": "list",
+          "cachedResultName": "Instagram_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblYIp6DJlBHiehV4"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Human_Agent": false,
+            "InstagramID": "={{ $json.recipient_id }}",
+            "Last_Interaction": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "InstagramID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "InstagramID",
+              "displayName": "InstagramID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkSent",
+                  "value": "LinkSent"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last_Interaction",
+              "displayName": "Last_Interaction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Human_Agent",
+              "displayName": "Human_Agent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        320,
+        -32
+      ],
+      "id": "b19e43d5-8b03-47b0-88db-9832b3c800ab",
+      "name": "Update to Nudged",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIp6DJlBHiehV4",
+          "mode": "list",
+          "cachedResultName": "Instagram_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblYIp6DJlBHiehV4"
+        },
+        "filterByFormula": "=AND(\n  {Status} = 'Pending',\n  DATETIME_DIFF(NOW(), {Last_Interaction}, 'hours') >= 2\n)",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        -32
+      ],
+      "id": "540cc462-dd16-4e3e-9355-5c2f769a1afb",
+      "name": "List Pending > 2hr",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v23.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer IGAAL7cdW3GalBZAFlnRGVrT29WUGdNUXRvUzZACcm8xbWVkRVNjRGFab2dEYXRNTWxZAUkZADTlBSdkxtZAUxwS3ZA3MUU0eG5pM3gtYjBQUWVvM1JlRG96LVlyNi1YNTJmMXJIX1d1VGgxbGtXMmE5dUpaRDhHelpvNDhHdDRzNHZACOAZDZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $json.InstagramID }}\"\n  },\n  \"message\": {\n    \"text\": \"Hey! Just checking in to see if you had a chance to look at that info? 😊\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        112,
+        -32
+      ],
+      "id": "8143a3a4-3b67-44c9-a82f-5b6d079b94bd",
+      "name": "Send Follow-up Message"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        192
+      ],
+      "id": "b89bdab0-7c5e-4f52-be06-6356bae37934",
+      "name": "Schedule (15m)1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIp6DJlBHiehV4",
+          "mode": "list",
+          "cachedResultName": "Instagram_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblYIp6DJlBHiehV4"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Human_Agent": false,
+            "InstagramID": "={{ $json.recipient_id }}",
+            "Status": "LinkSent",
+            "Last_Interaction": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "InstagramID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "InstagramID",
+              "displayName": "InstagramID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkSent",
+                  "value": "LinkSent"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last_Interaction",
+              "displayName": "Last_Interaction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Human_Agent",
+              "displayName": "Human_Agent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        320,
+        192
+      ],
+      "id": "2a7d05bd-dd18-47c3-ad9d-d353c9525f9f",
+      "name": "Update to LinkSent",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIp6DJlBHiehV4",
+          "mode": "list",
+          "cachedResultName": "Instagram_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblYIp6DJlBHiehV4"
+        },
+        "filterByFormula": "=AND(\n  {Status} = 'Pending',\n  DATETIME_DIFF(NOW(), {Last_Interaction}, 'hours') >= 5\n)",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        192
+      ],
+      "id": "d8cabe9d-ec94-4826-90e7-ce05dc607b1d",
+      "name": "List Pending > 5hr",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v23.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer IGAAL7cdW3GalBZAFlnRGVrT29WUGdNUXRvUzZACcm8xbWVkRVNjRGFab2dEYXRNTWxZAUkZADTlBSdkxtZAUxwS3ZA3MUU0eG5pM3gtYjBQUWVvM1JlRG96LVlyNi1YNTJmMXJIX1d1VGgxbGtXMmE5dUpaRDhHelpvNDhHdDRzNHZACOAZDZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $json.InstagramID }}\"\n  },\n  \"message\": {\n    \"text\": \"Hey! Just checking in to see if you had a chance to look at that info? For further details please join us on whatsapp via https://wa.me/923411946334 for seamless and faster communication.\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        112,
+        192
+      ],
+      "id": "6a38c666-3b9a-4b15-87f7-dcb0be14fb7e",
+      "name": "Send Follow-up Message (Link)"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        576,
+        288
+      ],
+      "id": "5e63fc62-e0be-48ff-aa2d-edd0dc7f434c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Bot",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIp6DJlBHiehV4",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblYIp6DJlBHiehV4"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        736,
+        288
+      ],
+      "id": "836a9e3e-847e-4a7a-a28e-953834018146",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Search records').item.json.InstagramID }}",
+        "contextWindowLength": 30
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        928,
+        688
+      ],
+      "id": "d139ebe2-155c-44ce-a7c0-1c3e99e655e2",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Hy",
+        "options": {
+          "systemMessage": "=# TECHNICAL REQUIREMENT (HIGHEST PRIORITY)\nYou are a functional software component.\n1. You must ONLY output raw JSON.\n2. NO text before the JSON (e.g., do not say \"Here is the answer\").\n3. NO text after the JSON.\n4. NO Markdown code blocks (do not use ```json).\n\nFormat:\n{ \"response_to_user\": \"Your response text here\" }\n\n# ROLE\nYou are the Lead Support AI for CryptoMiners.\n- *ALWAYS* Use the \"Pinecone\" tool to answer any questions before saying that you don't have info about that. Do not assume any answers, always go for the vector database search.\n- If the tool gives you data, incorporate it naturally into the JSON response.\n- Do not mention \"I checked the database\". Just give the answer.\n- Not LONG answers, to the point short ones, and always always always go to pinecone vector tool whenever you feel like the user has asked a question. This is a very strict rule. \n- If they ask a question you dont have an answer to, politely direct them to whatsapp.\n\n- **IMPORTANT** \nAfter two to three messages direct them to whatsapp by saying that it is for faster and seamless conversation. Do not start the proper conversation on instagram. \n\n# WHATSAPP STRATEGY\n- **Link:** [https://wa.me/923154429171](https://wa.me/923154429171)\n- **Goal:** Answer 1-2 questions helpfully, then guide them to WhatsApp. This is for seamless and faster communication.\n\n# HANDLING \"CHAT HERE\"\nIf user asks \"Can't we chat here?\", output exactly:\n{ \"response_to_user\": \"I understand, but for real-time stock checks and security, we only finalize orders on WhatsApp. Please click the link to continue.\" }\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        864,
+        256
+      ],
+      "id": "0589d360-7da4-4ed7-92ec-c3a7db877dac",
+      "name": "Conversational AI"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "=Use this tool to search for official information about CryptoMiners. It contains details on mining rig specifications, hosting service pricing, profitability, and company policies. Always use this tool before answering technical questions.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "cryptominers",
+          "mode": "list",
+          "cachedResultName": "cryptominers"
+        },
+        "options": {
+          "pineconeNamespace": "crypto_faqs"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        608
+      ],
+      "id": "7aca5393-1c53-4b93-9a21-578c08cc5b97",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "S20ZhPgk5Q4k6W8b",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get the raw output (Could be a String OR an Object)\nlet raw = $input.item.json.output;\n\n// 2. Normalize: If it's a string (Scenario A), parse it into an object first\nif (typeof raw === 'string') {\n    try {\n        // Clean markdown wrapper if present\n        raw = raw.replace(/```json/g, '').replace(/```/g, '').trim();\n        raw = JSON.parse(raw);\n    } catch (e) {\n        // If parsing fails, treat it as a text object\n        raw = { response_to_user: raw };\n    }\n}\n\n// 3. Extract the initial text (Scenario B)\n// If raw was null/undefined, default to empty object\nraw = raw || {};\nlet finalParams = raw.response_to_user || raw.text || raw.response || \"\";\n\n// 4. Double-Check: Is the extracted text actually HIDDEN JSON? (Scenario C - The \"Dirty\" case)\nif (typeof finalParams === 'string' && (finalParams.trim().startsWith('{') || finalParams.trim().startsWith('```'))) {\n    try {\n        const cleanRaw = finalParams.replace(/```json/g, '').replace(/```/g, '').trim();\n        const parsedDeep = JSON.parse(cleanRaw);\n        finalParams = parsedDeep.response_to_user || parsedDeep.text || finalParams;\n    } catch (e) {\n        // If deep parse fails, try regex to grab the value manually\n        const match = finalParams.match(/\"response_to_user\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"/);\n        if (match) {\n            finalParams = match[1];\n        }\n    }\n}\n\n// 5. Final fallback: If empty, verify if we missed the text in a weird field\nif (!finalParams && typeof raw === 'string') {\n    finalParams = raw; \n}\n\nreturn {\n  json: {\n    output: {\n      response_to_user: finalParams\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        256
+      ],
+      "id": "e974cd61-7e70-4a77-99e5-8a763e617f95",
+      "name": "Format Output"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1168,
+        816
+      ],
+      "id": "d3c07dab-0a24-48d7-a3ca-31f688e68f6d",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "np2sanG5hEgUvAtD",
+          "name": "cryptominor open ai api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        736,
+        464
+      ],
+      "id": "f7a19e12-8ce0-4ee9-b478-574a65d64542",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "np2sanG5hEgUvAtD",
+          "name": "cryptominor open ai api key"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule (15m)": {
+      "main": [
+        [
+          {
+            "node": "List Pending > 2hr",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Pending > 2hr": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-up Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Follow-up Message": {
+      "main": [
+        [
+          {
+            "node": "Update to Nudged",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule (15m)1": {
+      "main": [
+        [
+          {
+            "node": "List Pending > 5hr",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Pending > 5hr": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-up Message (Link)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Follow-up Message (Link)": {
+      "main": [
+        [
+          {
+            "node": "Update to LinkSent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversational AI": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bb1dd86e-8062-4613-81f9-be6b21a320e0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc8bd653bd955df4ad98b1ca0e1ecf383fad117acca015364bb1781d3b620deb"
+  },
+  "id": "K8UfSmIY3UK2YPJw",
+  "tags": []
+}

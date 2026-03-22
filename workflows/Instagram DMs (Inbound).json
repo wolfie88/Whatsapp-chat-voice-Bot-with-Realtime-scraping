@@ -1,0 +1,1144 @@
+{
+  "name": "Instagram DMs (Inbound)",
+  "nodes": [
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "123",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -272,
+        112
+      ],
+      "id": "9bb07801-b02b-4f8c-9376-2bead4982202",
+      "name": "Webhook",
+      "webhookId": "bc9c2750-859d-44fc-b77f-da9aeba65bb8"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        -128
+      ],
+      "id": "836b4f7c-a2a9-4005-882d-4c36964596c3",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4bd8d94a-ad34-4b88-ab97-ff11397bc2a5",
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "cc2d73cb-6d5b-4d81-a73d-ad53102cbd77",
+              "leftValue": "={{ $json.query['hub.verify_token'] }}",
+              "rightValue": "testing",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        -112
+      ],
+      "id": "846228b7-265b-4c16-9cee-bddffabab984",
+      "name": "Verification"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.entry[0].messaging[0].sender.id }}",
+        "contextWindowLength": 30
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        544
+      ],
+      "id": "4ee29477-dc0f-43e1-8d7d-397c1cdf6ca0",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v23.0/{{ $('Webhook').first().json.body.entry[0].messaging[0].recipient.id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer IGAAL7cdW3GalBZAFlnRGVrT29WUGdNUXRvUzZACcm8xbWVkRVNjRGFab2dEYXRNTWxZAUkZADTlBSdkxtZAUxwS3ZA3MUU0eG5pM3gtYjBQUWVvM1JlRG96LVlyNi1YNTJmMXJIX1d1VGgxbGtXMmE5dUpaRDhHelpvNDhHdDRzNHZACOAZDZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"recipient\": {\n      \"id\": $('Webhook').first().json.body.entry[0].messaging[0].sender.id\n    },\n    \"message\": {\n      \"text\": $('Format Output').first().json.output.response_to_user\n    }\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1008,
+        144
+      ],
+      "id": "926d6fb9-5bcc-4a5d-a248-7d82d76925ab",
+      "name": "Respond on Instagram",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -320,
+        512
+      ],
+      "id": "43e419a4-d4c2-468e-82c3-778b06dbf8e1",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "np2sanG5hEgUvAtD",
+          "name": "cryptominor open ai api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.entry[0].messaging[0].message.text }}",
+        "options": {
+          "systemMessage": "=TECHNICAL REQUIREMENT (HIGHEST PRIORITY)\nYou are a functional software component.\n\nYou must ONLY output raw JSON.\nNO text before the JSON (e.g., do not say \"Here is the answer\").\nNO text after the JSON.\nNO Markdown code blocks (do not use ```json).\n\nFormat:\n{ \"response_to_user\": \"Your response text here\" }\n\nROLE\nYou are the Lead Support AI for CryptoMiners, a cryptocurrency mining business.\nCore Principles:\n\nReply politely, professionally, and concisely (max 3 lines).\nAlways answer the latest user message.\nNever guess. Always use the appropriate tool before responding.\nDo not mention tools, databases, or internal processes to the user.\nIncorporate tool data naturally into your JSON response.\n\n\nTOOL USAGE HIERARCHY (STRICT)\nPriority Order:\n\nASIC Scraper Webhook Service → For real-time product/pricing data\nPinecone Embeddings → For company/knowledge queries\nBase Knowledge → Only if no tools are applicable\n\n\n1. ASIC Scraper Webhook Service (Primary for Real-Time Data)\nWhen to Call:\nCall this tool if the user asks about:\n\nASIC miners (models, specs, prices, availability, ROI)\nHosting services (pricing, power, location, capacity)\nComparisons between miners\nBest ROI or most profitable miners\nMiners by manufacturer or price range\nAny real-time or dynamic information\n\nHow to Call:\nPass the user's COMPLETE latest message as the query parameter. The scraping workflow intelligently routes to:\n\nmodel_detail: Specific miner specs\n\nExamples: \"S19 Pro specs\", \"iPollo V1 details\", \"tell me about Whatsminer M30S++\"\n\n\nmanufacturer_list: All models from a manufacturer\n\nExamples: \"Bitmain models\", \"show me iPollo miners\", \"Whatsminer list\"\n\n\nprice_range: Miners within a price range\n\nExamples: \"miners under $5000\", \"ASICs between $3000-$8000\", \"cheap miners\"\n\n\nbest_roi: Most profitable miner\n\nExamples: \"best ROI miner\", \"most profitable ASIC\", \"which miner makes most money\"\n\n\ncomparison: Compare multiple miners\n\nExamples: \"compare S19 vs M30S\", \"S19 Pro or S21\", \"difference between...\"\n\n\nhosting: Hosting information\n\nExamples: \"hosting options\", \"where to host miners\", \"colocation services\"\n\n\none_roi: ROI calculation for specific miner with investment amount\n\nExamples: \"roi of Bitmain Antminer L11 Hyd 6U on investment of 12000\"\n\n\ngeneral_search: General inquiry or list request\n\nExamples: \"show me miners\", \"what's available\", \"list all\"\n\n\n\nCritical Rules:\n\nSend the user's full message as-is to the tool\nDo NOT parse or extract parameters yourself\nReturn the tool response directly in your JSON\nDo not modify the tool's response\nNEVER use Pinecone for real-time queries, not even for a single detail\n\n\n2. Pinecone Embeddings (For Company & Knowledge Queries)\nWhen to Call:\nCall Pinecone embeddings if the user asks about:\n\nCompany information:\n\n\"Who are you?\", \"Tell me about CryptoMiners UAE\", \"Your company history\", \"Your team\", \"company policies\"\n\n\nGeneral mining knowledge:\n\n\"What is cryptocurrency mining?\", \"How does proof-of-work work?\", \"What is hashrate?\"\n\n\nEducational content:\n\n\"Explain ASIC vs GPU mining\", \"What factors affect mining profitability?\"\n\n\nCompany-specific policies:\n\n\"What's your return policy?\", \"Do you offer warranties?\", \"Payment methods accepted\"\n\n\nBackground context:\n\nIndustry trends, mining basics, company services overview\n\n\n\nHow to Use:\n\nQuery Pinecone with the user's question to retrieve relevant embedded knowledge\nUse retrieved context to formulate your response\nCite information naturally without mentioning \"embeddings\", \"Pinecone\", \"database\", or \"I checked\"\nALWAYS use Pinecone before saying you don't have information\n\nCritical Rule:\n\nIf a user asks ANY question and you don't immediately know the answer, you MUST query Pinecone first before responding\n\n\nDECISION FLOWCHART\nUser Query Received\n    ↓\nIs it about real-time data, products, pricing, ASICs, hosting, or availability?\n    ↓ YES → Call ASIC Scraper Webhook Service → Return tool data in JSON\n    ↓ NO\n    ↓\nIs it about company info, policies, general knowledge, or education?\n    ↓ YES → Query Pinecone Embeddings → Use context in JSON response\n    ↓ NO\n    ↓\nIs it a question you're unsure about?\n    ↓ YES → Query Pinecone Embeddings first\n    ↓ NO\n    ↓\nUse your base knowledge to respond in JSON\n\nWHATSAPP MIGRATION STRATEGY\nWhatsApp Link: https://wa.me/923154429171\nGoal: Guide users to WhatsApp for seamless and faster communication.\nRules:\n\nAnswer 1-2 initial questions helpfully using the appropriate tools\nAfter every 3-4 messages, give a soft reminder to shift to WhatsApp\nDo NOT start proper conversations on Instagram—keep it brief and redirect\n\nSoft Reminder Format (use after 3-4 messages):\njson{ \"response_to_user\": \"[Answer their question]. For faster support and real-time updates, let's continue on WhatsApp: https://wa.me/923154429171\" }\nIf user asks \"Can't we chat here?\":\nOutput exactly:\njson{ \"response_to_user\": \"I understand, but for real-time stock checks and security, we only finalize orders on WhatsApp. Please click the link to continue: https://wa.me/923154429171\" }\n\nLANGUAGE\nAuto-detect and respond in: English / Spanish / Arabic / Chinese etc any language\nAlways reply in the user's language.\n\nRESPONSE GUIDELINES\n\nMax 3 lines per response\nBe concise, polite, and professional\nNever mention internal tools, databases, or processes\nIf Pinecone returns no data AND ASIC Scraper is not applicable, politely direct to WhatsApp:\n\njson  { \"response_to_user\": \"I don't have that specific information right now. Please contact us on WhatsApp for detailed assistance: https://wa.me/923154429171\" }\n\nEXAMPLES\nExample 1 - Real-time Product Query:\nUser: \"What's the price of S19 Pro?\"\nAction: Call ASIC Scraper Webhook Service with full message\nOutput:\njson{ \"response_to_user\": \"The Bitmain Antminer S19 Pro is available for $2,850. Would you like hosting options too?\" }\nExample 2 - Company Policy Query:\nUser: \"What's your warranty policy?\"\nAction: Query Pinecone Embeddings\nOutput:\njson{ \"response_to_user\": \"We offer a 6-month manufacturer warranty on all devices. Extended warranties are available—let's discuss on WhatsApp: https://wa.me/971501433709\" }\nExample 3 - After 3-4 Messages:\nUser: \"How does hosting work?\"\nAction: Query Pinecone, then add WhatsApp reminder\nOutput:\njson{ \"response_to_user\": \"We provide fully managed hosting with 24/7 monitoring and competitive power rates. For personalized quotes and faster support, let's continue on WhatsApp: https://wa.me/923154429171\" }\n\nCRITICAL REMINDERS\n✅ DO:\n\nAlways call ASIC Scraper for real-time product/pricing queries\nAlways query Pinecone for company/knowledge questions before saying you don't know\nKeep responses under 3 lines\nRedirect to WhatsApp after 3-4 messages\nOutput ONLY raw JSON\n\n❌ DON'T:\n\nNever use Pinecone for real-time product queries\nNever mention tools, databases, or \"I checked\"\nNever output text outside JSON\nNever use Markdown code blocks\nNever guess—always use tools first"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        16,
+        128
+      ],
+      "id": "8180748a-55e1-4c27-976e-e64dbe968840",
+      "name": "Conversational AI"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "=Use this tool to search for official information about CryptoMiners. It contains details on mining rig specifications, hosting service pricing, profitability, and company policies. Always use this tool before answering technical questions.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "cryptominers",
+          "mode": "list",
+          "cachedResultName": "cryptominers"
+        },
+        "options": {
+          "pineconeNamespace": "crypto_faqs"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        464
+      ],
+      "id": "600d24de-f98f-46d6-967e-6480d940f78d",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "S20ZhPgk5Q4k6W8b",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIp6DJlBHiehV4",
+          "mode": "list",
+          "cachedResultName": "Instagram_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblYIp6DJlBHiehV4"
+        },
+        "filterByFormula": "={InstagramID} = '{{ $('Webhook').first().json.body.entry[0].messaging[0].sender.id }}'",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1232,
+        144
+      ],
+      "id": "c3676a7a-4956-483f-a419-48aadbab5fb2",
+      "name": "Check User Status",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d4909d48-b265-452f-aa23-3f95b23b5f61",
+              "name": "name",
+              "value": "={{ $('Check User Status').first()?.json?.fields?.Status == 'LinkSent' ? 'LinkSent' : 'Pending' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1664,
+        256
+      ],
+      "id": "99514cae-de50-463d-8863-69f5f523490a",
+      "name": "First Message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3c1a4e75-290f-47f1-b67d-af5d039d0002",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        144
+      ],
+      "id": "54298dd3-37b4-44d2-bb4c-3cf1ae30f830",
+      "name": "Is Existing User?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get the raw output (Could be a String OR an Object)\nlet raw = $input.item.json.output;\n\n// 2. Normalize: If it's a string (Scenario A), parse it into an object first\nif (typeof raw === 'string') {\n    try {\n        // Clean markdown wrapper if present\n        raw = raw.replace(/```json/g, '').replace(/```/g, '').trim();\n        raw = JSON.parse(raw);\n    } catch (e) {\n        // If parsing fails, treat it as a text object\n        raw = { response_to_user: raw };\n    }\n}\n\n// 3. Extract the initial text (Scenario B)\n// If raw was null/undefined, default to empty object\nraw = raw || {};\nlet finalParams = raw.response_to_user || raw.text || raw.response || \"\";\n\n// 4. Double-Check: Is the extracted text actually HIDDEN JSON? (Scenario C - The \"Dirty\" case)\nif (typeof finalParams === 'string' && (finalParams.trim().startsWith('{') || finalParams.trim().startsWith('```'))) {\n    try {\n        const cleanRaw = finalParams.replace(/```json/g, '').replace(/```/g, '').trim();\n        const parsedDeep = JSON.parse(cleanRaw);\n        finalParams = parsedDeep.response_to_user || parsedDeep.text || finalParams;\n    } catch (e) {\n        // If deep parse fails, try regex to grab the value manually\n        const match = finalParams.match(/\"response_to_user\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"/);\n        if (match) {\n            finalParams = match[1];\n        }\n    }\n}\n\n// 5. Final fallback: If empty, verify if we missed the text in a weird field\nif (!finalParams && typeof raw === 'string') {\n    finalParams = raw; \n}\n\nreturn {\n  json: {\n    output: {\n      response_to_user: finalParams\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        128
+      ],
+      "id": "6df0f725-55be-4fba-abe2-edd2404fabdc",
+      "name": "Format Output"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Bot",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIp6DJlBHiehV4",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblYIp6DJlBHiehV4"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "InstagramID": "={{ $('Webhook').first().json.body.entry[0].messaging[0].sender.id }}",
+            "Status": "={{ \n  $json.name\n}}",
+            "Last_Interaction": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "InstagramID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "InstagramID",
+              "displayName": "InstagramID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkSent",
+                  "value": "LinkSent"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last_Interaction",
+              "displayName": "Last_Interaction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Human_Agent",
+              "displayName": "Human_Agent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1888,
+        256
+      ],
+      "id": "06c47e3d-9e97-48d2-95c4-75d70fb6209e",
+      "name": "Status: Pending",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        672
+      ],
+      "id": "6f3888c0-1f04-417a-b973-6ecfaab363b6",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "np2sanG5hEgUvAtD",
+          "name": "cryptominor open ai api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "55b4bf9d-a7d7-44bb-a453-9e1a506ddb9b",
+              "name": "NewStatus",
+              "value": "={{ \n  // 1. ROBUST HISTORY LOCK\n  // Check BOTH locations: inside 'fields' (standard) AND at top level (flattened)\n  (\n    ($('Check User Status').first()?.json?.fields?.Status || $('Check User Status').first()?.json?.Status || \"\").toString().includes('LinkSent')\n  ) \n  || \n  // 2. NEW LINK CHECK\n  // If the bot just sent the link right now\n  (\n    ($('Format Output').first()?.json?.output?.response_to_user || \"\").toLowerCase().includes(\"wa.me\")\n  )\n  \n  ? \"LinkSent\" \n  : \"Pending\" \n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1664,
+        -32
+      ],
+      "id": "894d9414-d05b-4292-9cd0-6b90f20083d2",
+      "name": "Determine Status (Pending or LinkSent)"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Bot",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIp6DJlBHiehV4",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblYIp6DJlBHiehV4"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "InstagramID": "={{ $('Webhook').first().json.body.entry[0].messaging[0].sender.id }}",
+            "Status": "={{ $json.NewStatus }}",
+            "Last_Interaction": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "InstagramID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "InstagramID",
+              "displayName": "InstagramID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkSent",
+                  "value": "LinkSent"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last_Interaction",
+              "displayName": "Last_Interaction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Human_Agent",
+              "displayName": "Human_Agent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1888,
+        -32
+      ],
+      "id": "4a5507ef-16fe-44ab-918c-be6a7fae0ba9",
+      "name": "Status: Pending or LinkSent",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIp6DJlBHiehV4",
+          "mode": "list",
+          "cachedResultName": "Instagram_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblYIp6DJlBHiehV4"
+        },
+        "filterByFormula": "={InstagramID} = '{{ $('Webhook').first().json.body.entry[0].messaging[0].sender.id }}'",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        576,
+        128
+      ],
+      "id": "fc937704-f3bd-4344-9064-5ea7895c0e5d",
+      "name": "Check Human Switch",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f6edc2e8-3da9-491c-ad89-dc020470733f",
+              "leftValue": "={{ $json.Human_Agent }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        128
+      ],
+      "id": "c0f3eee1-f874-4986-b917-2cde5c7f871f",
+      "name": "Is Human Needed?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYIp6DJlBHiehV4",
+          "mode": "list",
+          "cachedResultName": "Instagram_Leads",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tblYIp6DJlBHiehV4"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Last_Interaction": "={{ $now }}",
+            "InstagramID": "={InstagramID} = '{{ $('Webhook').first().json.body.entry[0].messaging[0].sender.id }}'"
+          },
+          "matchingColumns": [
+            "InstagramID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "InstagramID",
+              "displayName": "InstagramID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "LinkSent",
+                  "value": "LinkSent"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Last_Interaction",
+              "displayName": "Last_Interaction",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Human_Agent",
+              "displayName": "Human_Agent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        -80
+      ],
+      "id": "3b3a594a-0ab5-433b-aaea-a7eb088cde23",
+      "name": "Update Last Interaction",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "=## ROLE\nYou are an advanced AI assistant for a cryptocurrency mining business. Your purpose is to:\n- Respond politely, professionally, and concisely.\n- Always answer the **latest user message**, but you may use previous messages ONLY as context (never override the latest message).\n- Ask qualification questions in the exact required order.\n- Score leads accurately.\n- Provide correct answers using data from the \"Pinecone\" vector database.\n- DO NOT guess or assume answers — ALWAYS search Pinecone first.\n- If Pinecone provides relevant info, include it naturally in your answer without mentioning the database.\n- Maintain short, friendly, and business-focused replies.\n\n---\n\n## TOOL USAGE RULES (CRITICAL ADDITION)\nYou are a customer support assistant.\n\nIf the user asks about **products, ASIC miners, miner models, prices, availability, or hosting services**:\n- You MUST use the tool **`Call ASIC Scraper Webhook Service`**\n- Send the message to workflow so  other workflow can understand the details clearly...\n- Do NOT answer from your own knowledge\n- Do NOT rely on Pinecone for these requests\n- Always return the response received from the tool to the customer\n- Do NOT modify or rephrase the tool response unless required for language translation\n\nIf the request does NOT relate to products or hosting services, continue normal behavior using Pinecone and the qualification flow.\n\n---\n\n## LANGUAGE HANDLING\nAutomatically detect and respond in the user's language:\n- English  \n- Spanish  \n- Arabic  \n- Chinese  \n\nALL questions and answers must remain in the user's detected language.\n\n---\n\n## BEHAVIOR RULES\n1. Always respond based on the **latest user message**.\n2. Use earlier conversation ONLY for context.\n3. Never contradict or override the user’s latest message.\n4. When the user interacts for the first time:\n   Send greeting:\n   **\"Hello dear, Greetings from CryptoMiners UAE division, hope you are doing well. Please tell how can we assist you?\"**\n5. Ask ONLY one qualification question at a time.\n6. If user already answered a question earlier, skip to the next one.\n7. If user asks technical questions, respond AND continue the qualification process afterward.\n8. If user returns back after sometime, greet them like, \"Hi, again...\" and give them a short summary of what was discussed earlier, a very short one.\n\n---\n\n## QUALIFICATION QUESTIONS (ASK IN THIS ORDER)\n1. **What interests you?**  \n   Options: Device purchase / Hosting service / Both  \n\n2. **What's your budget range?**  \n   Options: $500-2K / $2K-5K / $5K-10K / $10K+  \n\n3. **What's your location/country?**  \n\n4. **What's your timeline?**  \n   Options: This week / This month / Just researching  \n\n5. **Have you mined before?**  \n   Options: Yes / No  \n\n---\n\n## SCORING LOGIC\nCalculate score from all collected answers:\n\n### Budget\n- $10K+ → 30 pts  \n- $5K-10K → 20 pts  \n- $2K-5K → 10 pts  \n- <$2K → 5 pts  \n\n### Timeline\n- This week → 25 pts  \n- This month → 15 pts  \n- Researching → 5 pts  \n\n### Experience\n- Yes → 10 pts  \n- No → 5 pts  \n\n### Engagement\nAdd:\n- +10 pts if user gives detailed replies  \n- +10 pts if user asks relevant technical questions (miners, hosting, profitability, power, etc.)\n\n---\n\n## LEAD STATUS\nBased on total score:\n- **HOT:** 65+ points  \n- **WARM:** 35-64  \n- **NURTURE:** <35 \n\n---\n\n## ROUTING RULES (CRITICAL)\nYou are a lead qualification assistant. Your goal is to collect the following missing details: Name, Budget, Timeline, and Location.\n\nSet ready_to_route: true ONLY if:\n- You have successfully collected ALL required details (Name, Budget, Timeline, Location)\n- OR the user has explicitly ended the conversation (e.g., \"Thanks,\" \"Bye,\" \"That's all\")\n- OR the user explicitly refuses to provide more info\n\nUntil then, ready_to_route MUST be false.\n\n---\n\n## KNOWLEDGE ANSWERS (Pinecone)\nIf the user asks ANY question related to:\n- Profitability (estimates only)  \n- Power consumption + electrical requirements  \n- Regulations by region  \n- Shipping, warranty, payment  \n- Hydro vs air-cooled, container mining  \n\n→ ALWAYS search Pinecone  \n→ If data exists, incorporate naturally  \n→ Never say “According to Pinecone”\n\nIf Pinecone gives no relevant data:\n→ Give a general professional answer WITHOUT guessing specifics.\n\nMost important note:  \nThe reply to the user must be accurate, to the point, maximum **2 lines**, friendly, and UAE-based humanized wording.\n\n---\n\n## JSON-ONLY RESPONSE FORMAT\nAlways reply with ONLY this structure:\n\n{\n  \"reply_to_user\": \"Message for the customer in detected language.\",\n  \"lead_data\": {\n    \"calculated_score\": 0,\n    \"lead_status\": \"PENDING\",\n    \"summary\": \"Short summary of user profile\",\n    \"ready_to_route\": false\n  }\n}\n\n---\n\n## CURRENT DATE\nToday's date is {{ $now.toLocal() }}.\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "xgKVN5IEcQNkjU0R",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/xgKVN5IEcQNkjU0R",
+          "cachedResultName": "ASIC Miners - Complete with Scraping FIXED"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chatInput": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('chatInput', ``, 'string') }}",
+            "SessionID": "={{ $json.body.entry[0].messaging[0].sender.id }}"
+          },
+          "matchingColumns": [
+            "chatInput"
+          ],
+          "schema": [
+            {
+              "id": "chatInput",
+              "displayName": "chatInput",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "SessionID",
+              "displayName": "SessionID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        512
+      ],
+      "id": "088c4865-7228-4e79-a7ed-bb5c54b9114b",
+      "name": "Call 'ASIC Miners - Complete with Scraping FIXED'"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v23.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer IGAAL7cdW3GalBZAFlnRGVrT29WUGdNUXRvUzZACcm8xbWVkRVNjRGFab2dEYXRNTWxZAUkZADTlBSdkxtZAUxwS3ZA3MUU0eG5pM3gtYjBQUWVvM1JlRG96LVlyNi1YNTJmMXJIX1d1VGgxbGtXMmE5dUpaRDhHelpvNDhHdDRzNHZACOAZDZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $json.InstagramID }}\"\n  },\n  \"message\": {\n    \"text\": \"Hey! Just checking in to see if you had a chance to look at that info? 😊\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1152,
+        816
+      ],
+      "id": "b894f707-ec9b-4ba3-8d86-0942cc4d510c",
+      "name": "Send Follow-up Message"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        336
+      ],
+      "id": "1ce8c5d3-5dc3-46fd-8a3f-1578aaa68644",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OiixnLMEGAMWWir6",
+          "name": "Google Gemini API"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "connection": "upgrade",
+            "host": "n8n.arqon.space",
+            "content-length": "619",
+            "accept": "*/*",
+            "accept-encoding": "deflate, gzip",
+            "user-agent": "facebookexternalua",
+            "content-type": "application/json",
+            "x-hub-signature": "sha1=8dec2ce449b01407d98a6f5304fc9b96bb2a8d84",
+            "x-hub-signature-256": "sha256=6ab5c2f1bfd18730c1f49bea41e115eeb4b6126697ddfd35784cd09d7f0d4f44",
+            "instagram-api-version": "v24.0"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "object": "instagram",
+            "entry": [
+              {
+                "time": 1770223949333,
+                "id": "17841479986691938",
+                "messaging": [
+                  {
+                    "sender": {
+                      "id": "17841479986691938"
+                    },
+                    "recipient": {
+                      "id": "1274437357898932"
+                    },
+                    "timestamp": 1770223946719,
+                    "message": {
+                      "mid": "aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDc5OTg2NjkxOTM4OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI3NjAyODAwMzI0OTc1MzIwMDozMjY1NDg2ODA5ODI4MjA5NDg4ODA2OTkzOTE1NDkxMTIzMgZDZD",
+                      "text": "CryptoMiners offers mining hardware primarily from Bitmain (Antminer series) along with nearly 90% of major crypto market brands. Our experts can help you choose the best miner based on your budget and goals.",
+                      "is_echo": true
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "webhookUrl": "https://n8n.arqon.space/webhook/cryptominners",
+          "executionMode": "production"
+        }
+      }
+    ],
+    "Conversational AI": [
+      {
+        "json": {
+          "output": "```json\n{\n \"response_to_user\": \"Hello dear, Greetings from CryptoMiners UAE division, hope you are doing well. We appreciate your interest in our diverse range of mining hardware. Please tell how can we assist you?\",\n \"lead_data\": {\n  \"calculated_score\": 0,\n  \"lead_status\": \"PENDING\",\n  \"summary\": \"User is interested in CryptoMiners' offerings.\",\n  \"ready_to_route\": false\n }\n}\n```"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Conversational AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verification": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Conversational AI": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond on Instagram": {
+      "main": [
+        [
+          {
+            "node": "Check User Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check User Status": {
+      "main": [
+        [
+          {
+            "node": "Is Existing User?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "First Message": {
+      "main": [
+        [
+          {
+            "node": "Status: Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Existing User?": {
+      "main": [
+        [
+          {
+            "node": "Determine Status (Pending or LinkSent)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "First Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Output": {
+      "main": [
+        [
+          {
+            "node": "Check Human Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Status (Pending or LinkSent)": {
+      "main": [
+        [
+          {
+            "node": "Status: Pending or LinkSent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status: Pending or LinkSent": {
+      "main": [
+        []
+      ]
+    },
+    "Check Human Switch": {
+      "main": [
+        [
+          {
+            "node": "Is Human Needed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Human Needed?": {
+      "main": [
+        [
+          {
+            "node": "Update Last Interaction",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond on Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'ASIC Miners - Complete with Scraping FIXED'": {
+      "ai_tool": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Conversational AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "21ecb3ff-520f-4141-9cde-bfd56155c9ab",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc8bd653bd955df4ad98b1ca0e1ecf383fad117acca015364bb1781d3b620deb"
+  },
+  "id": "DSKWKO3J4vp1C6EZ",
+  "tags": [
+    {
+      "updatedAt": "2026-02-09T17:48:37.301Z",
+      "createdAt": "2026-02-09T17:48:37.301Z",
+      "id": "q40dfNeEt8zvzC2H",
+      "name": "Discard"
+    }
+  ]
+}

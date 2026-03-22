@@ -1,0 +1,1303 @@
+{
+  "name": "ASIC Miners - Complete with Scraping FIXED",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Get input data from \"Prepare Document Data\" node\nconst data = $input.first().json;\nconst groupedMiners = data.groupedMiners;\nconst manufacturers = data.manufacturers;\nconst totalCount = data.totalCount;\nconst generatedDate = data.generatedDate;\n\n// Calculate statistics\nlet totalModels = 0;\nmanufacturers.forEach(mfg => {\n  totalModels += groupedMiners[mfg].length;\n});\n\n// Enhanced CSS for professional PDF rendering\nconst css = `\n<style>\n  @page {\n    size: A4;\n    margin: 15mm;\n  }\n  \n  * {\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n  }\n  \n  body { \n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;\n    color: #1a1a1a;\n    line-height: 1.6;\n    font-size: 10pt;\n    padding: 20px;\n  }\n  \n  .header { \n    text-align: center; \n    margin-bottom: 40px;\n    padding: 30px 20px;\n    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n    color: white;\n    border-radius: 12px;\n    box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n  }\n  \n  .title { \n    font-size: 32px; \n    font-weight: bold;\n    margin-bottom: 10px;\n    text-shadow: 0 2px 4px rgba(0,0,0,0.2);\n  }\n  \n  .subtitle {\n    font-size: 14px;\n    opacity: 0.95;\n    margin-bottom: 5px;\n  }\n  \n  .stats-container {\n    display: flex;\n    justify-content: center;\n    gap: 30px;\n    margin-top: 20px;\n    flex-wrap: wrap;\n  }\n  \n  .stats-box {\n    background: rgba(255,255,255,0.2);\n    padding: 15px 25px;\n    border-radius: 8px;\n    backdrop-filter: blur(10px);\n    min-width: 120px;\n  }\n  \n  .stats-number {\n    font-size: 28px;\n    font-weight: bold;\n    display: block;\n  }\n  \n  .stats-label {\n    font-size: 12px;\n    opacity: 0.9;\n    margin-top: 5px;\n  }\n  \n  .toc {\n    background: #f8f9fa;\n    padding: 25px;\n    border-radius: 10px;\n    margin-bottom: 40px;\n    border-left: 4px solid #667eea;\n  }\n  \n  .toc-title {\n    color: #2E5C8A;\n    font-size: 20px;\n    font-weight: bold;\n    margin-bottom: 20px;\n    display: flex;\n    align-items: center;\n    gap: 10px;\n  }\n  \n  .toc-grid {\n    display: grid;\n    grid-template-columns: repeat(2, 1fr);\n    gap: 12px;\n  }\n  \n  .toc-item {\n    padding: 10px;\n    background: white;\n    border-radius: 6px;\n    border: 1px solid #e0e0e0;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n  }\n  \n  .toc-item-name {\n    font-weight: 600;\n    color: #2E5C8A;\n  }\n  \n  .toc-item-count {\n    background: #667eea;\n    color: white;\n    padding: 3px 10px;\n    border-radius: 12px;\n    font-size: 11px;\n    font-weight: bold;\n  }\n  \n  h1 { \n    color: #2E5C8A; \n    border-bottom: 3px solid #667eea; \n    padding-bottom: 12px; \n    margin-top: 50px;\n    margin-bottom: 25px;\n    font-size: 24px;\n    page-break-after: avoid;\n    display: flex;\n    align-items: center;\n    gap: 10px;\n  }\n  \n  .manufacturer-summary {\n    background: linear-gradient(135deg, #f8f9fa 0%, #e8f4f8 100%);\n    padding: 15px 20px;\n    border-radius: 8px;\n    margin-bottom: 20px;\n    border-left: 4px solid #667eea;\n    font-size: 11px;\n    display: flex;\n    gap: 30px;\n    flex-wrap: wrap;\n  }\n  \n  .summary-item {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n  }\n  \n  .summary-label {\n    color: #6b7280;\n    font-weight: 600;\n  }\n  \n  .summary-value {\n    color: #2E5C8A;\n    font-weight: bold;\n  }\n  \n  table { \n    width: 100%; \n    border-collapse: collapse; \n    font-size: 9pt; \n    margin-bottom: 40px;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.1);\n    border-radius: 8px;\n    overflow: hidden;\n  }\n  \n  thead {\n    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  }\n  \n  th { \n    color: white; \n    padding: 14px 10px; \n    text-align: left;\n    font-weight: 600;\n    font-size: 10pt;\n    text-transform: uppercase;\n    letter-spacing: 0.5px;\n  }\n  \n  td { \n    border-bottom: 1px solid #e0e0e0; \n    padding: 12px 10px;\n    vertical-align: middle;\n  }\n  \n  tbody tr {\n    transition: background-color 0.2s;\n  }\n  \n  tbody tr:nth-child(even) { \n    background-color: #f8f9fa; \n  }\n  \n  tbody tr:hover {\n    background-color: #e8f4f8;\n  }\n  \n  .model-name {\n    font-weight: 600;\n    color: #2E5C8A;\n    font-size: 10pt;\n  }\n  \n  .price {\n    color: #10b981;\n    font-weight: 700;\n    font-size: 10pt;\n  }\n  \n  .page-break { \n    page-break-before: always; \n  }\n  \n  .footer {\n    margin-top: 60px;\n    padding-top: 30px;\n    border-top: 3px solid #e0e0e0;\n    page-break-inside: avoid;\n  }\n  \n  .footer-title {\n    font-weight: bold;\n    color: #2E5C8A;\n    margin-bottom: 15px;\n    font-size: 14px;\n  }\n  \n  .footer-notes {\n    background: #fff3cd;\n    padding: 20px;\n    border-radius: 8px;\n    border-left: 4px solid #ffc107;\n    margin-bottom: 20px;\n  }\n  \n  .footer-notes ul {\n    list-style-position: inside;\n    color: #856404;\n    line-height: 1.8;\n  }\n  \n  .footer-notes li {\n    margin-bottom: 8px;\n  }\n  \n  .footer-copyright {\n    text-align: center;\n    color: #9ca3af;\n    font-size: 9pt;\n    margin-top: 20px;\n    padding-top: 20px;\n    border-top: 1px solid #e0e0e0;\n  }\n  \n  @media print {\n    body {\n      print-color-adjust: exact;\n      -webkit-print-color-adjust: exact;\n    }\n    \n    .page-break {\n      page-break-before: always;\n    }\n  }\n</style>\n`;\n\n// Start HTML document\nlet html = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>ASIC Miners Catalog ${generatedDate}</title>\n  ${css}\n</head>\n<body>`;\n\n// Header Section\nhtml += `\n<div class=\"header\">\n  <div class=\"title\">⛏️ ASIC Miners Catalog</div>\n  <div class=\"subtitle\">Complete Mining Hardware Reference Guide</div>\n  <div class=\"subtitle\">Generated: ${generatedDate}</div>\n  \n  <div class=\"stats-container\">\n    <div class=\"stats-box\">\n      <span class=\"stats-number\">${totalCount}</span>\n      <span class=\"stats-label\">Total Models</span>\n    </div>\n    <div class=\"stats-box\">\n      <span class=\"stats-number\">${manufacturers.length}</span>\n      <span class=\"stats-label\">Manufacturers</span>\n    </div>\n  </div>\n</div>\n`;\n\n// Table of Contents\nhtml += `\n<div class=\"toc\">\n  <div class=\"toc-title\">📋 Table of Contents</div>\n  <div class=\"toc-grid\">\n`;\n\nmanufacturers.forEach((mfg, index) => {\n  const count = groupedMiners[mfg].length;\n  html += `\n    <div class=\"toc-item\">\n      <span class=\"toc-item-name\">${index + 1}. ${mfg}</span>\n      <span class=\"toc-item-count\">${count} models</span>\n    </div>\n  `;\n});\n\nhtml += `\n  </div>\n</div>\n`;\n\n// Manufacturer Sections\nmanufacturers.forEach((mfg, index) => {\n  const models = groupedMiners[mfg];\n  const breakClass = index > 0 ? 'class=\"page-break\"' : '';\n  \n  // Calculate price range for this manufacturer\n  let minPrice = Infinity;\n  let maxPrice = -Infinity;\n  let priceCount = 0;\n  \n  models.forEach(m => {\n    if (m.price && m.price !== 'N/A') {\n      const priceStr = String(m.price); // Convert to string first\n      const priceNum = parseFloat(priceStr.replace(/[^0-9.]/g, ''));\n      if (!isNaN(priceNum)) {\n        minPrice = Math.min(minPrice, priceNum);\n        maxPrice = Math.max(maxPrice, priceNum);\n        priceCount++;\n      }\n    }\n  });\n  \n  const priceRange = priceCount > 0 ? \n    `$${minPrice.toLocaleString()} - $${maxPrice.toLocaleString()}` : \n    'N/A';\n  \n  html += `<h1 ${breakClass}>${mfg}</h1>`;\n  \n  // Manufacturer Summary\n  html += `\n  <div class=\"manufacturer-summary\">\n    <div class=\"summary-item\">\n      <span class=\"summary-label\">📦 Total Models:</span>\n      <span class=\"summary-value\">${models.length}</span>\n    </div>\n    <div class=\"summary-item\">\n      <span class=\"summary-label\">💰 Price Range:</span>\n      <span class=\"summary-value\">${priceRange}</span>\n    </div>\n    <div class=\"summary-item\">\n      <span class=\"summary-label\">🏷️ Category:</span>\n      <span class=\"summary-value\">${\n        mfg === 'Bitmain' || mfg === 'MicroBT' || mfg === 'Canaan' \n          ? 'Bitcoin Mining' \n          : 'Multi-Algorithm'\n      }</span>\n    </div>\n  </div>\n  `;\n  \n  // Models Table\n  html += `\n  <table>\n    <thead>\n      <tr>\n        <th width=\"8%\">#</th>\n        <th width=\"62%\">Model Name</th>\n        <th width=\"30%\">Price (USD)</th>\n      </tr>\n    </thead>\n    <tbody>\n  `;\n  \n  models.forEach((model, idx) => {\n    const price = model.price || 'N/A';\n    \n    html += `\n      <tr>\n        <td style=\"text-align: center; color: #9ca3af;\">${idx + 1}</td>\n        <td><span class=\"model-name\">${model.name}</span></td>\n        <td><span class=\"price\">${price}</span></td>\n      </tr>\n    `;\n  });\n  \n  html += `\n    </tbody>\n  </table>\n  `;\n});\n\n// Footer Section\nhtml += `\n<div class=\"footer\">\n  <div class=\"footer-title\">⚠️ Important Disclaimer & Notes</div>\n  \n  <div class=\"footer-notes\">\n    <ul>\n      <li><strong>Pricing:</strong> All prices are approximate and subject to change.</li>\n      <li><strong>Profitability:</strong> Mining profitability fluctuates based on network difficulty, cryptocurrency prices, and electricity costs.</li>\n      <li><strong>Availability:</strong> Stock availability varies by region .</li>\n      <li><strong>Specifications:</strong> Always verify technical specifications with the manufacturer's official documentation.</li>\n   \n      <li><strong>Warranty & Support:</strong> Check warranty terms and local support availability before purchasing.</li>\n    </ul>\n  </div>\n  \n  <div class=\"footer-copyright\">\n    <p><strong>Cryptominer AE Catalog</strong></p>\n    <p>Document Generated: ${generatedDate}</p>\n    <p>© ${new Date().getFullYear()} All Rights Reserved</p>\n    <p style=\"margin-top: 10px; font-size: 8pt;\">\n      This document is for informational purposes only. No warranties or guarantees are provided.\n    </p>\n  </div>\n</div>\n`;\n\n// Close HTML\nhtml += `\n</body>\n</html>\n`;\n\n// Generate filename\nconst filename = `ASIC_Miners_Catalog_${new Date().toISOString().split('T')[0]}`;\n\n// Return the complete HTML document in the format expected by Convert to PDF Binary node\nreturn {\n  json: {\n    filename: filename,\n    data: html,\n    totalModels: totalCount,\n    totalManufacturers: manufacturers.length,\n    generatedDate: generatedDate\n  }\n};"
+      },
+      "id": "029e3b46-7ebf-4a50-9bfb-1a82cb841269",
+      "name": "Generate PDF HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        -400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl52uQ64NtoEZGyC",
+          "mode": "list",
+          "cachedResultName": "Product Details"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -832,
+        -400
+      ],
+      "id": "d7ccc4f1-47ee-47fe-bcfb-33ed9c13bc17",
+      "name": "Read All Models from DB1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "chatInput"
+            },
+            {
+              "name": "SessionID",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1840,
+        -1072
+      ],
+      "id": "9d81018a-2c37-4803-aa4f-d8d705f00f53",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const miners = $input.all().map(item => item.json);\n// Get the SessionID (Phone Number) from the start of the workflow\nconst sessionID = $('When Executed by Another Workflow').first().json.SessionID;\n\nconst groupedMiners = {};\nconst manufacturerOrder = ['Bitmain', 'MicroBT', 'Canaan', 'IceRiver', 'Goldshell', 'Whatsminer', 'Jasminer', 'Innosilicon', 'Bitaxe', 'iPollo', 'Antminer', 'Avalon', 'Other'];\n\nminers.forEach(miner => {\n  const name = miner.name || miner.name_lower || 'Unknown';\n  let manufacturer = miner.manufacturer || 'Other';\n  manufacturer = manufacturer.charAt(0).toUpperCase() + manufacturer.slice(1);\n  \n  if (!groupedMiners[manufacturer]) groupedMiners[manufacturer] = [];\n  \n  groupedMiners[manufacturer].push({\n    name: name,\n    price: miner.Price || 'N/A' // Keeping only Price as you requested\n  });\n});\n\nconst sortedManufacturers = Object.keys(groupedMiners).sort(); // Simplified sort\n\nreturn {\n  json: {\n    sessionID: sessionID, // <--- PASSING THE PHONE NUMBER\n    groupedMiners: groupedMiners,\n    manufacturers: sortedManufacturers,\n    totalCount: miners.length,\n    generatedDate: new Date().toLocaleDateString('en-US')\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -400
+      ],
+      "id": "725141c6-f93d-4814-b064-d11891e52320",
+      "name": "Prepare Document Data"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an intelligent router for ASIC miner queries. Analyze the user's intent and classify into ONE of these categories:\n\n1. **\"model_detail\"**: User wants DETAILED specs for a SPECIFIC miner model\n   - Examples: \"S19 Pro specs\", \"tell me about Whatsminer M30S++\", \"iPollo V1 details\"\n   - Extract: exact model name\n\n2. **\"manufacturer_list\"**: User wants to see ALL MODELS from a manufacturer\n   - Examples: \"Bitmain models\", \"show me iPollo miners\", \"Whatsminer list\"\n   - Extract: manufacturer name\n\n3. **\"price_range\"**: User wants miners within a specific PRICE RANGE\n   - Examples: \"miners under $5000\", \"ASICs between $3000-$8000\", \"cheap miners\"\n   - Extract: minPrice and maxPrice (use 0 for no min, 999999 for no max)\n\n4. **\"best_roi\"**: User wants the MOST PROFITABLE miner or wants to know the roi of the speciifc miner\n   - Examples: \"best ROI miner\", \"most profitable ASIC\", \"which miner makes most money\", \"\n\n   - Extract: any constraints (price limit, algorithm, manufacturer)\n\n5. **\"comparison\"**: User wants to know information of  multiple miners or wants comaprision \n   - Examples: \"compare S19 vs M30S\", \"S19 Pro or S21\", \"difference between...\" or \"prices of Bitmain Antminer S21 XP+ Hyd, Innosilicon T3 50T, Bitmain Antminer E9\"\"\n\n   - Extract: list of at least 2 model names\n\n6. **\"hosting\"**: User asks about HOSTING services\n   - Examples: \"hosting options\", \"where to host miners\", \"colocation\"\n\n7. **one_roi** User wants to calculate the roi of the one miner \n example :\"roi of the Bitmain Antminer L11 Hyd 6U on investment of 12000\", you have to return three keys in this way\n\n8. **\"general_search\"**: General inquiry or list request\n   - Examples: \"show me miners\", \"what's available\", \"list all\"\n\nOUTPUT ONLY VALID JSON (NO MARKDOWN FENCES):\n\n{\"type\": \"model_detail\", \"model_name\": \"S19 Pro\"}\n\nOR {\"type\": \"manufacturer_list\", \"manufacturer\": \"Bitmain\"}\n\nOR {\"type\": \"price_range\", \"minPrice\": 3000, \"maxPrice\": 8000}\n\nOR {\"type\": \"best_roi\", \"constraints\": {\"maxPrice\": 10000}}\n\nOR {\"type\": \"comparison\", \"models\": [\"S19 Pro\", \"M30S++\"]}\n\nOR {\"type\": \"hosting\"}\n\nOR {\"type\": \"one_roi\", \"model_name\": \"S19 Pro\", \"investment\": 12000}\n\nOR {\"type\": \"general_search\", \"limit\": 20}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        -1616,
+        -1072
+      ],
+      "id": "5c438fd0-5e0b-4016-8258-8f93ca5d7c8a",
+      "name": "Intelligent Router"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.item.json.text || '{}';\nconst start = text.indexOf('{');\nconst end = text.lastIndexOf('}');\n\nif (start > -1 && end > -1) {\n  try {\n    const parsed = JSON.parse(text.substring(start, end + 1));\n    return parsed;\n  } catch (e) {\n    console.error('Parse error:', e);\n    return { type: 'general_search', limit: 20 };\n  }\n} else {\n  return { type: 'general_search', limit: 20 };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1264,
+        -1072
+      ],
+      "id": "90f8fe95-1716-4973-ac80-1efeccf8bdb7",
+      "name": "Parse Router"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "model_detail",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "88bdda53-4674-43cb-adfb-258c1b08c0e3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "model_detail"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "manufacturer_list",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "bf783979-d214-4b2b-9645-d46d7530538c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "manufacturer_list"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "price_range",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "45156118-8f70-4810-bfea-d811923effff"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "price_range"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "best_roi",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3ba50311-e079-4a65-9f37-b4e3b67d44db"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "best_roi"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "comparison",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "9cc0f249-5083-43ac-b62b-92ec14104d97"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "comparison"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "hosting",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3ef8a6f9-9be4-479b-a730-f9220f38ec40"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "hosting"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b824b9a1-576d-4bfc-9f70-b3b2545dd246",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "general_search",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "general"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e3032b70-0705-47e5-b18b-6af4ae093fcf",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "one_roi",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "one_roi"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3c44efcb-68ec-4ed5-b5b2-c0814143cb2d",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "all_models_document",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "all_models"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1040,
+        -1184
+      ],
+      "id": "5d675a5d-e228-4d63-9b27-5a11b9afa80e",
+      "name": "Route by Intent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const miners = $('Read DB - Model Detail').all().map(item => item.json);\nconst routerData = $('Parse Router').first().json;\nlet modelQuery = (routerData.model_name || '').toLowerCase().trim();\n\nconst removeWords = /\\b(miner|asic|the|model|about|details|specs?|info|tell me|show me)\\b/gi;\nmodelQuery = modelQuery.replace(removeWords, '').replace(/\\s+/g, ' ').trim();\n\nif (!modelQuery) {\n  return { \n    json: {\n      error: true,\n      output: '❌ Please specify which miner model you want details about.'\n    }\n  };\n}\n\nlet bestMatch = null;\nlet highestScore = 0;\n\nfor (const miner of miners) {\n  if (!miner.name_lower) continue;\n  \n  const minerName = miner.name_lower.toString().toLowerCase();\n  const cleanMinerName = minerName.replace(removeWords, '').replace(/\\s+/g, ' ').trim();\n  \n  let score = 0;\n  \n  if (cleanMinerName === modelQuery || minerName === modelQuery) {\n    score = 1000;\n  } else if (cleanMinerName.includes(modelQuery)) {\n    score = 800 - (cleanMinerName.length - modelQuery.length);\n  } else if (modelQuery.includes(cleanMinerName)) {\n    score = 750 - (modelQuery.length - cleanMinerName.length);\n  } else {\n    const queryWords = modelQuery.split(/[\\s\\-_]+/).filter(w => w.length > 1);\n    const nameWords = cleanMinerName.split(/[\\s\\-_]+/).filter(w => w.length > 1);\n    \n    let matchedWords = 0;\n    for (const qWord of queryWords) {\n      if (nameWords.some(nw => nw.includes(qWord) || qWord.includes(nw))) {\n        matchedWords++;\n      }\n    }\n    \n    if (matchedWords >= queryWords.length * 0.5) {\n      score = matchedWords * 100;\n    }\n  }\n  \n  if (score > highestScore) {\n    highestScore = score;\n    bestMatch = miner;\n  }\n}\n\nif (!bestMatch || highestScore < 100) {\n  return { \n    json: {\n      error: true,\n      output: `❌ Couldn't find model \"${routerData.model_name}\". Try:\\n• Check spelling\\n• Use official model name\\n• Ask to see all models from a manufacturer`\n    }\n  };\n}\n\nreturn {\n  json: {\n    matched_product: bestMatch.name,\n    url: bestMatch.url,\n    slug: bestMatch.slug,\n    original_query: routerData.model_name,\n    match_score: highestScore,\n    error: false\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -1744
+      ],
+      "id": "043af58f-42d3-4101-96b1-707526178460",
+      "name": "Match Model"
+    },
+    {
+      "parameters": {
+        "jsCode": "const miners = $('Read DB - Manufacturer').all().map(item => item.json);\nconst routerData = $('Parse Router').first().json;\nconst manufacturerQuery = (routerData.manufacturer || '').toLowerCase().trim();\n\nif (!manufacturerQuery) {\n  return { \n    json: {\n      output: '❌ Please specify a manufacturer name.',\n      type: 'error'\n    }\n  };\n}\n\nconst manufacturerAliases = {\n  'bitmain': ['bitmain', 'antminer', 'ant miner', 'ant'],\n  'microbt': ['microbt', 'whatsminer', 'whats miner', 'micro bt', 'what'],\n  'canaan': ['canaan', 'avalon'],\n  'innosilicon': ['innosilicon', 'inno silicon', 'inno'],\n  'ebang': ['ebang', 'ebit'],\n  'ipollo': ['ipollo', 'i pollo', 'nano labs'],\n  'goldshell': ['goldshell', 'gold shell'],\n  'iceriver': ['iceriver', 'ice river'],\n  'jasminer': ['jasminer', 'jas miner']\n};\n\nlet targetManufacturer = null;\nfor (const [key, aliases] of Object.entries(manufacturerAliases)) {\n  if (aliases.some(alias => manufacturerQuery.includes(alias) || alias.includes(manufacturerQuery))) {\n    targetManufacturer = key;\n    break;\n  }\n}\n\nif (!targetManufacturer) {\n  targetManufacturer = manufacturerQuery;\n}\n\nconst matchedMiners = [];\nfor (const miner of miners) {\n  if (!miner.name_lower) continue;\n  \n  const minerName = miner.name_lower.toString().toLowerCase();\n  let isMatch = false;\n  \n  if (targetManufacturer === 'bitmain') {\n    isMatch = minerName.includes('antminer') || minerName.includes('bitmain');\n  } else if (targetManufacturer === 'microbt') {\n    isMatch = minerName.includes('whatsminer') || minerName.includes('microbt');\n  } else if (targetManufacturer === 'canaan') {\n    isMatch = minerName.includes('avalon') || minerName.includes('canaan');\n  } else if (targetManufacturer === 'ipollo') {\n    isMatch = minerName.includes('ipollo');\n  } else if (targetManufacturer === 'goldshell') {\n    isMatch = minerName.includes('goldshell');\n  } else if (targetManufacturer === 'iceriver') {\n    isMatch = minerName.includes('iceriver');\n  } else if (targetManufacturer === 'jasminer') {\n    isMatch = minerName.includes('jasminer');\n  } else {\n    isMatch = minerName.includes(targetManufacturer);\n  }\n  \n  if (isMatch) {\n    matchedMiners.push({\n      name: miner.name || miner.name_lower,\n      model: miner.name_lower\n    });\n  }\n}\n\nif (matchedMiners.length === 0) {\n  return { \n    json: {\n      output: `❌ No miners found for \"${manufacturerQuery}\". Try: Bitmain, MicroBT, Canaan, iPollo, Goldshell, IceRiver, Jasminer.`,\n      type: 'error'\n    }\n  };\n}\n\nconst sortedMiners = matchedMiners.sort((a, b) => a.name.localeCompare(b.name));\n\nlet message = `**Found ${sortedMiners.length} models from ${manufacturerQuery.toUpperCase()}:**\\n\\n`;\nsortedMiners.forEach((miner) => {\n  message += `• ${miner.name}\\n`;\n});\nmessage += `\\n💡 **Which model would you like details about?**`;\n\nreturn {\n  json: {\n    output: message,\n    type: 'manufacturer_list',\n    manufacturer: manufacturerQuery,\n    models: sortedMiners,\n    count: sortedMiners.length\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -1552
+      ],
+      "id": "03b95381-e403-444f-9f85-b523303c7267",
+      "name": "Filter by Manufacturer"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get data from Airtable\nconst miners = $('Read DB - Price Range').all().map(item => item.json);\nconst routerData = $('Parse Router').first().json;\nconst minPrice = parseFloat(routerData.minPrice) || 0;\nconst maxPrice = parseFloat(routerData.maxPrice) || 999999;\n\nconsole.log('Router Data:', routerData);\nconsole.log('Total miners from DB:', miners.length);\nconsole.log('Price range:', minPrice, '-', maxPrice);\n\n// Function to extract numeric price from various formats\nfunction extractPrice(miner) {\n  // Check all possible price field names\n  const priceFields = ['price', 'Price', 'cost', 'Cost', 'Price ($)', 'price_usd'];\n  \n  for (const field of priceFields) {\n    if (miner[field]) {\n      const priceStr = String(miner[field])\n        .replace(/[$€£¥,\\s]/g, '')\n        .replace(/[^\\d.]/g, '');\n      const price = parseFloat(priceStr);\n      if (price > 0) {\n        console.log(`Found price ${price} in field \"${field}\" for ${miner.name || miner.name_lower}`);\n        return price;\n      }\n    }\n  }\n  \n  return 0;\n}\n\nconst filteredMiners = [];\nconst allPrices = [];\n\nfor (const miner of miners) {\n  const price = extractPrice(miner);\n  \n  if (price > 0) {\n    allPrices.push(price);\n    \n    if (price >= minPrice && price <= maxPrice) {\n      filteredMiners.push({\n        name: miner.name || miner.name_lower || 'Unknown',\n        price: `$${price.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`,\n        hashrate: miner.hashrate || miner.Hashrate || 'N/A',\n        power: miner.power || miner.consumption || miner.Power || miner.Consumption || 'N/A',\n        algorithm: miner.algorithm || miner.Algorithm || 'N/A',\n        url: miner.url || miner.URL || '',\n        raw_price: price\n      });\n    }\n  }\n}\n\nconsole.log('Filtered miners:', filteredMiners.length);\n\n// If no miners found, provide helpful error\nif (filteredMiners.length === 0) {\n  allPrices.sort((a, b) => a - b);\n  const minAvailable = allPrices[0] || 0;\n  const maxAvailable = allPrices[allPrices.length - 1] || 0;\n  \n  let errorMsg = `❌ No miners found between $${minPrice.toLocaleString()} - $${maxPrice.toLocaleString()}.\\n\\n`;\n  \n  if (allPrices.length > 0) {\n    errorMsg += `💡 **Available price range:** $${minAvailable.toLocaleString()} - $${maxAvailable.toLocaleString()}\\n\\n`;\n    errorMsg += `**Try these ranges:**\\n`;\n    errorMsg += `• Under $5,000\\n`;\n    errorMsg += `• $5,000 - $10,000\\n`;\n    errorMsg += `• $10,000 - $20,000\\n`;\n    errorMsg += `• Over $20,000`;\n  } else {\n    errorMsg += `⚠️ **No price data found in database.**\\n`;\n    errorMsg += `Please check:\\n`;\n    errorMsg += `• Airtable has a \"price\" or \"Price\" column\\n`;\n    errorMsg += `• Price values are numbers or currency format\\n`;\n    errorMsg += `• The correct table is selected`;\n  }\n  \n  return {\n    json: {\n      output: errorMsg,\n      type: 'error',\n      debug: {\n        minersChecked: miners.length,\n        pricesFound: allPrices.length,\n        requestedRange: `${minPrice}-${maxPrice}`,\n        availableRange: allPrices.length > 0 ? `${minAvailable}-${maxAvailable}` : 'none'\n      }\n    }\n  };\n}\n\n// Sort by price\nconst sortedMiners = filteredMiners.sort((a, b) => a.raw_price - b.raw_price);\nconst limitedMiners = sortedMiners.slice(0, 30);\n\nlet message = `**💰 Found ${filteredMiners.length} miners between $${minPrice.toLocaleString()} - $${maxPrice.toLocaleString()}**\\n\\n`;\n\nlimitedMiners.forEach((miner, idx) => {\n  message += `**${idx + 1}. ${miner.name}**\\n`;\n  message += `   💵 Price: ${miner.price}\\n`;\n});\n\nif (filteredMiners.length > 30) {\n  message += `\\n_Showing top 30 of ${filteredMiners.length} results_\\n`;\n}\n\nmessage += `\\n💡 **Need more info?**\\n• Ask for details: \"tell me about [model name]\"\\n• Compare models: \"compare [model 1] vs [model 2]\"`;\n\nreturn {\n  json: {\n    output: message,\n    type: 'price_range_list',\n    minPrice: minPrice,\n    maxPrice: maxPrice,\n    models: limitedMiners,\n    count: filteredMiners.length\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -1360
+      ],
+      "id": "53abd889-b47f-4aa2-9f58-93e5e674286f",
+      "name": "Filter by Price"
+    },
+    {
+      "parameters": {
+        "jsCode": "const miners = $('Read DB - Best ROI').all().map(item => item.json);\nconst routerData = $('Parse Router').first().json;\nconst constraints = routerData.constraints || {};\n\nlet candidateMiners = [...miners];\n\nif (constraints.manufacturer) {\n  const mfg = constraints.manufacturer.toLowerCase();\n  candidateMiners = candidateMiners.filter(m => {\n    const name = (m.name_lower || m.name || '').toLowerCase();\n    return name.includes(mfg);\n  });\n}\n\nif (candidateMiners.length === 0) {\n  return {\n    json: {\n      output: '❌ No miners found matching your criteria.',\n      type: 'error'\n    }\n  };\n}\n\nconst topCandidates = candidateMiners.slice(0, 15);\n\nlet message = `🔍 **Best ROI Analysis**\\n\\n`;\nmessage += `To accurately compare ROI, I need real-time profitability data.\\n\\n`;\nmessage += `**Top miners to consider:**\\n\\n`;\n\ntopCandidates.forEach((miner, idx) => {\n  const name = miner.name || miner.name_lower || 'Unknown';\n  message += `${idx + 1}. ${name}\\n`;\n});\n\nmessage += `\\n💡 **For accurate ROI:**\\n`;\nmessage += `• Ask for details on specific models\\n`;\nmessage += `• Compare models (e.g., \"compare S19 Pro vs M30S++\")\\n\\n`;\n\nmessage += `**Popular high-ROI choices:**\\n`;\nmessage += `• Bitcoin: Antminer S21, S19 XP, Whatsminer M60S\\n`;\nmessage += `• Litecoin: Antminer L9, Goldshell LT6\\n`;\nmessage += `• Kaspa: IceRiver KS3M, Bitmain KS5 Pro\\n`;\nmessage += `• Aleo: IceRiver AE3, Goldshell AE-BOX Pro`;\n\nreturn {\n  json: {\n    output: message,\n    type: 'best_roi_guidance',\n    candidates: topCandidates.map(m => ({\n      name: m.name || m.name_lower,\n      url: m.url\n    })),\n    count: topCandidates.length\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -1168
+      ],
+      "id": "ac81d8b3-c709-42a0-bca8-10f41dbae6a6",
+      "name": "Calculate Best ROI"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error }}",
+              "value2": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        -1744
+      ],
+      "id": "55c55171-d434-4721-b1d3-b2c1e814403b",
+      "name": "Match Success?"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -144,
+        -1744
+      ],
+      "id": "1ffad8c0-0893-4687-bc66-fbeff32cfc96",
+      "name": "Fetch Detail Page"
+    },
+    {
+      "parameters": {
+        "url": "https://www.cryptominers.ae/hosting",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -816,
+        -592
+      ],
+      "id": "2b3913c7-0ce7-456f-a59c-6b9269b92563",
+      "name": "Fetch Hosting Page"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.item.json.data || '';\n\nfunction clean(t) { \n    if (!t) return '';\n    return t.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, '').replace(/\\s+/g, ' ').trim(); \n}\n\nconst titleMatch = html.match(/<h1[^>]*>([\\s\\S]*?)<\\/h1>/);\nconst title = titleMatch ? clean(titleMatch[1]) : 'Unknown Miner';\n\nlet price = 'N/A';\nlet stock = 'Unknown';\nconst plainText = clean(html);\nconst priceIdx = plainText.indexOf('Best price');\n\nif (priceIdx > -1) {\n    const snippet = plainText.substring(priceIdx, priceIdx + 150);\n    const moneyMatch = snippet.match(/[\\$€]\\s?([\\d,]+)/);\n    if (moneyMatch) {\n        price = moneyMatch[0].replace(' ', ''); \n        stock = /in stock/i.test(snippet) ? 'In Stock' : 'Check Vendor';\n    }\n}\nif (price === 'N/A' || price === '$0') {\n    const buySection = html.substring(html.indexOf('Where to buy'), html.indexOf('Buying tips'));\n    const tablePrice = buySection.match(/[\\$€]\\s?([\\d,]+)/);\n    if (tablePrice) {\n        price = tablePrice[0].replace(' ', '');\n        stock = 'Check Vendor';\n    }\n}\n\nconst profSection = html.substring(html.indexOf('Daily'), html.indexOf('Algorithms'));\nconst allVals = clean(profSection).match(/[\\-\\$€]\\s?[\\d,]+\\.\\d+/g) || [];\nconst profData = {\n    daily:   { income: allVals[0]||'-', elec: allVals[3]||'-', profit: allVals[6]||'-' },\n    monthly: { income: allVals[1]||'-', elec: allVals[4]||'-', profit: allVals[7]||'-' },\n    yearly:  { income: allVals[2]||'-', elec: allVals[5]||'-', profit: allVals[8]||'-' }\n};\n\nlet algoTable = \"N/A\";\nconst algoStart = html.indexOf('Algorithms');\nconst algoEnd = html.indexOf('Generation') > -1 ? html.indexOf('Generation') : html.indexOf('Specifications');\n\nif (algoStart > -1 && algoEnd > algoStart) {\n    let rawAlgo = clean(html.substring(algoStart, algoEnd));\n    rawAlgo = rawAlgo.replace('Algorithms', '').replace('Algorithm Hashrate Consumption Efficiency Profitability', '').trim();\n    const parts = rawAlgo.split(' ');\n    \n    if (parts.length >= 5) {\n        const hashrate = parts.find(p => p.match(/h\\/s/i)) || '-';\n        const power = parts.find(p => p.match(/W/i)) || '-';\n        const eff = parts.find(p => p.match(/j\\//i)) || '-';\n        const profit = parts.find(p => p.match(/[\\$€]/)) || '-';\n        const nameIdx = parts.indexOf(hashrate);\n        const name = nameIdx > 0 ? parts.slice(0, nameIdx).join(' ') : parts[0];\n\n        algoTable = `| Algorithm | Hashrate | Consumption | Efficiency | Profitability |\\n| :--- | :--- | :--- | :--- | :--- |\\n| ${name} | ${hashrate} | ${power} | ${eff} | ${profit} |`;\n    } else {\n        algoTable = rawAlgo;\n    }\n}\n\nconst specs = {};\nconst specSection = html.substring(html.indexOf('Specifications'), html.indexOf('Minable coins'));\nconst specRows = specSection.match(/<tr[^>]*>([\\s\\S]*?)<\\/tr>/gi) || [];\nfor (const row of specRows) {\n    const cols = row.match(/<td[^>]*>([\\s\\S]*?)<\\/td>/gi);\n    if (cols && cols.length === 2) {\n        specs[clean(cols[0])] = clean(cols[1]);\n    }\n}\n\nconst coins = [];\nconst coinLinks = html.match(/<a[^>]*href=\\\"\\/coins\\/[^\\\"]+\\\"[^>]*>([\\s\\S]*?)<\\/a>/gi) || [];\nfor (const link of coinLinks) {\n    const txt = clean(link);\n    const amtMatch = txt.match(/([\\d\\.,]+\\s?[A-Z]{2,10})/);\n    if (amtMatch) coins.push({ name: txt.split(' ')[0], amount: amtMatch[0] });\n}\n\nconst pools = [];\nconst poolLinks = html.match(/<a[^>]*href=\\\"http[^\\\\\\\"]+\\\"[^>]*>([\\s\\S]*?)<\\/a>/gi) || [];\nfor (const link of poolLinks) {\n    const pName = clean(link);\n    if (pName && !pName.includes('asicminervalue')) pools.push(pName);\n}\n\nreturn {\n    type: 'detail',\n    model: title,\n    price: price,\n    stock: stock,\n    profitability: profData,\n    algorithm: algoTable,\n    specs: specs,\n    coins: coins.slice(0, 8),\n    pools: pools.slice(0, 6)\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        -1744
+      ],
+      "id": "bd11b64d-3199-4016-ad1a-88b714ced2c1",
+      "name": "Scrape Detail Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.item.json.data || '';\nlet text = html.replace(/<script[\\s\\S]*?>[\\s\\S]*?<\\/script>/gi, '')\n              .replace(/<style[\\s\\S]*?>[\\s\\S]*?<\\/style>/gi, '')\n              .replace(/<[^>]+>/g, ' ')\n              .replace(/\\s+/g, ' ').trim();\n\nif (text.length < 300) {\n    text = `HOSTING PACKAGES:\\n\\nSTANDARD: $0.08/kWh\\nPREMIUM: $0.075/kWh\\nHYDRO: $0.07/kWh\\n\\nContact us for custom enterprise hosting solutions.`;\n}\n\nreturn { json: { hosting_info: text } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -592
+      ],
+      "id": "dbc0ddca-2cb3-4c87-8653-2ea16f3e78cb",
+      "name": "Scrape Hosting Data"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl52uQ64NtoEZGyC",
+          "mode": "list",
+          "cachedResultName": "Product Details",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tbl52uQ64NtoEZGyC"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -816,
+        -1744
+      ],
+      "id": "0bc6e816-6ba3-4edd-84e5-6dfca52017b9",
+      "name": "Read DB - Model Detail",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl52uQ64NtoEZGyC",
+          "mode": "list",
+          "cachedResultName": "Product Details",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tbl52uQ64NtoEZGyC"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -816,
+        -1552
+      ],
+      "id": "7bd9fd17-9da0-4f62-a01d-6120c8bde824",
+      "name": "Read DB - Manufacturer",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl52uQ64NtoEZGyC",
+          "mode": "list",
+          "cachedResultName": "Product Details",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tbl52uQ64NtoEZGyC"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -816,
+        -1360
+      ],
+      "id": "dd5b808d-3c1a-4239-8990-c4687ed407be",
+      "name": "Read DB - Price Range",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl52uQ64NtoEZGyC",
+          "mode": "list",
+          "cachedResultName": "Product Details",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tbl52uQ64NtoEZGyC"
+        },
+        "returnAll": false,
+        "options": {},
+        "sort": {
+          "property": [
+            {
+              "field": "Price",
+              "direction": "desc"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -816,
+        -1168
+      ],
+      "id": "069e945b-a332-40ea-ae87-134ffad059d7",
+      "name": "Read DB - Best ROI",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl52uQ64NtoEZGyC",
+          "mode": "list",
+          "cachedResultName": "Product Details",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tbl52uQ64NtoEZGyC"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -816,
+        -976
+      ],
+      "id": "11cbbd5e-1b7d-4d2a-aa13-0412dde6952d",
+      "name": "Read DB - Comparison",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1552,
+        -848
+      ],
+      "id": "9761f269-81a8-453a-ba35-7d0fe6689052",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "np2sanG5hEgUvAtD",
+          "name": "cryptominor open ai api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. GET INPUT (Fixed to prevent \"Node doesn't exist\" error)\n// We use $input.all() so it grabs data from whatever node is connected before this one\nconst miners = $input.all().map(item => item.json);\n\n// 2. GET ROUTER DATA\n// This node must exist. If it fails here, make sure 'Parse Router' ran.\nlet routerData = {};\ntry {\n  routerData = $('Parse Router').first().json;\n} catch(e) {\n  // Fallback for testing manually without the router\n  routerData = { models: [] }; \n}\n\nconst modelsToCompare = routerData.models || [];\n\n// 3. VALIDATION\nif (modelsToCompare.length < 2) {\n  return {\n    json: {\n      error: true,\n      output: '❌ Please specify at least 2 models to compare.\\n\\n**Examples:**\\n• \"compare S21 XP vs M60S\"\\n• \"S19 Pro or M30S++\"'\n    }\n  };\n}\n\n// 4. SCORING LOGIC\nfunction findBestMatch(queryModel, allMiners) {\n  let modelQuery = (queryModel || '').toLowerCase().trim();\n  const removeWords = /\\b(miner|asic|the|model|about|details|specs?|info|tell me|show me|vs|versus|or|and|compare|difference|between|better)\\b/gi;\n  modelQuery = modelQuery.replace(removeWords, '').replace(/\\s+/g, ' ').trim();\n\n  let bestMatch = null;\n  let highestScore = 0;\n\n  for (const miner of allMiners) {\n    if (!miner.name_lower) continue;\n    \n    const minerName = miner.name_lower.toString().toLowerCase();\n    const cleanMinerName = minerName.replace(removeWords, '').replace(/\\s+/g, ' ').trim();\n    \n    let score = 0;\n    \n    if (cleanMinerName === modelQuery || minerName === modelQuery) {\n      score = 1000;\n    } else if (cleanMinerName.includes(modelQuery)) {\n      score = 800 - (cleanMinerName.length - modelQuery.length);\n    } else if (modelQuery.includes(cleanMinerName)) {\n      score = 750 - (modelQuery.length - cleanMinerName.length);\n    } else {\n      const queryWords = modelQuery.split(/[\\s\\-_]+/).filter(w => w.length > 1);\n      const nameWords = cleanMinerName.split(/[\\s\\-_]+/).filter(w => w.length > 1);\n      let matchedWords = 0;\n      let partialMatches = 0;\n      for (const qWord of queryWords) {\n        let wordMatched = false;\n        for (const nWord of nameWords) {\n          if (nWord === qWord) { matchedWords++; wordMatched = true; break; }\n          else if (nWord.includes(qWord) || qWord.includes(nWord)) { partialMatches++; wordMatched = true; break; }\n        }\n        if (!wordMatched) matchedWords -= 0.5;\n      }\n      const matchRatio = (matchedWords + (partialMatches * 0.5)) / queryWords.length;\n      if (queryWords.length > 0 && matchRatio >= 0.4) {\n         score = (matchedWords * 100) + (partialMatches * 50);\n      }\n    }\n    \n    if (score > highestScore) {\n      highestScore = score;\n      bestMatch = miner;\n    }\n  }\n  return { match: bestMatch, score: highestScore };\n}\n\nconst matchedModels = [];\nconst failedMatches = [];\n\nfor (const queryModel of modelsToCompare) {\n  const result = findBestMatch(queryModel, miners);\n  if (result.match && result.score >= 100) {\n    matchedModels.push({\n      name: result.match.name,\n      url: result.match.url,\n      slug: result.match.slug,\n      query: queryModel,\n      score: result.score\n    });\n  } else {\n    failedMatches.push(queryModel);\n  }\n}\n\nif (matchedModels.length < 2) {\n  let errorMsg = `❌ **Comparison Failed**\\nNeed at least 2 valid models found.\\n\\n`;\n  if (matchedModels.length === 1) errorMsg += `✅ Found: **${matchedModels[0].name}**\\n`;\n  if (failedMatches.length > 0) errorMsg += `❌ Could not find: **${failedMatches.join(', ')}**\\n`;\n  \n  return { json: { error: true, output: errorMsg } };\n}\n\nreturn matchedModels.map(model => ({ json: model }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -976
+      ],
+      "id": "ad6ab22f-e98a-4305-be2d-6bc8b8ea9cb9",
+      "name": "Match Model1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -368,
+        -976
+      ],
+      "id": "6af5d5a9-cdf4-45e4-9422-917c190f0901",
+      "name": "Fetch Detail Page1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all the scraped models from the previous node\nconst models = $input.all().map(item => item.json);\n\n// Validation: Ensure we have models to compare\nif (!models || models.length < 2) {\n  return { json: { output: \"⚠️ Need at least two models to perform a comparison.\" } };\n}\n\n// --- HELPER: CONVERT CURRENCY STRING TO NUMBER ---\nfunction parseMoney(str) {\n    if (!str || str === '-' || str === 'N/A') return -99999999; // Treat missing data as very low profit\n    // Remove '$', ',', ' ' and convert to float\n    const clean = str.replace(/[$,\\s€]/g, '');\n    return parseFloat(clean);\n}\n\n// --- 1. DETERMINE WINNER ---\nlet bestModel = null;\nlet highestProfit = -Infinity;\n\nmodels.forEach(model => {\n    const dailyProfitStr = model.profitability.daily.profit;\n    const dailyProfitVal = parseMoney(dailyProfitStr);\n\n    // Store the numeric value for sorting later\n    model.profitValue = dailyProfitVal;\n\n    if (dailyProfitVal > highestProfit) {\n        highestProfit = dailyProfitVal;\n        bestModel = model;\n    }\n});\n\n// --- 2. GENERATE REPORT ---\nlet output = `## 📊 Profitability Comparison\\n\\n`;\n\n// Winner Section\nif (bestModel) {\n    output += `### 🏆 Winner: **${bestModel.model}**\\n`;\n    output += `It generates **${bestModel.profitability.daily.profit}/day**, making it the most profitable option right now.\\n\\n`;\n}\n\n// Comparison Table\noutput += `| Model | Daily Income | Elec. Cost | **Net Profit** | ROI Estimate |\\n`;\noutput += `| :--- | :--- | :--- | :--- | :--- |\\n`;\n\n// Sort models by profit (High to Low)\nconst sortedModels = models.sort((a, b) => b.profitValue - a.profitValue);\n\nsortedModels.forEach(m => {\n    // Basic ROI Calc (Price / Monthly Profit)\n    let roi = \"N/A\";\n    const priceVal = parseMoney(m.price);\n    const monthlyVal = parseMoney(m.profitability.monthly.profit);\n    \n    if (priceVal > 0 && monthlyVal > 0) {\n        const months = (priceVal / monthlyVal).toFixed(1);\n        roi = `~${months} mo`;\n    } else if (monthlyVal <= 0) {\n        roi = \"Never\";\n    }\n\n    output += `| **${m.model}** | ${m.profitability.daily.income} | ${m.profitability.daily.elec} | **${m.profitability.daily.profit}** | ${roi} |\\n`;\n});\n\noutput += `\\n> *Note: Profitability fluctuates daily based on network difficulty and coin prices.*`;\n\nreturn {\n    json: {\n        output: output,\n        winner: bestModel ? bestModel.model : \"None\",\n        comparison_data: sortedModels\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        -976
+      ],
+      "id": "fff30895-6933-4f2b-8683-c6e26485c175",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process ALL incoming items (models), not just one\nreturn $input.all().map(item => {\n    const html = item.json.data || '';\n    const originalUrl = item.json.url || '';\n\n    // --- 1. CLEAN TEXT HELPER ---\n    function clean(t) { \n        if (!t) return '';\n        return t.replace(/<[^>]+>/g, ' ')  // Tags to spaces\n                .replace(/&[a-z]+;/gi, '') // Entities\n                .replace(/\\s+/g, ' ')      // Collapse spaces\n                .trim(); \n    }\n\n    // --- 2. HEADER INFO ---\n    const titleMatch = html.match(/<h1[^>]*>([\\s\\S]*?)<\\/h1>/);\n    const title = titleMatch ? clean(titleMatch[1]) : 'Unknown Miner';\n\n    // --- 3. PRICE FINDER (Keep valid logic) ---\n    let price = 'N/A';\n    const plainText = clean(html);\n    // ... (Your existing price logic here, abbreviated for clarity but kept functional)\n    const priceIdx = plainText.indexOf('Best price');\n    if (priceIdx > -1) {\n        const snippet = plainText.substring(priceIdx, priceIdx + 150);\n        const moneyMatch = snippet.match(/[\\$€]\\s?([\\d,]+)/);\n        if (moneyMatch) price = moneyMatch[0].replace(' ', ''); \n    }\n\n    // --- 4. PROFITABILITY (CRITICAL SECTION) ---\n    // We scrape this carefully as it's the basis for comparison\n    const profSection = html.substring(html.indexOf('Daily'), html.indexOf('Algorithms'));\n    // Regex matches currency values like $12.50 or -$2.00\n    const allVals = clean(profSection).match(/[\\-\\$€]\\s?[\\d,]+\\.\\d+/g) || [];\n    \n    const profData = {\n        daily:   { income: allVals[0]||'-', elec: allVals[3]||'-', profit: allVals[6]||'-' },\n        monthly: { income: allVals[1]||'-', elec: allVals[4]||'-', profit: allVals[7]||'-' },\n        yearly:  { income: allVals[2]||'-', elec: allVals[5]||'-', profit: allVals[8]||'-' }\n    };\n\n    // Return structured data for the next node\n    return {\n        json: {\n            model: title,\n            price: price,\n            profitability: profData,\n            url: originalUrl\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        -976
+      ],
+      "id": "e7dc6ac1-aee8-41b8-b956-dab4469dcb1f",
+      "name": "Scrape Comparison Data1"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTsJGaEokGqsMWg",
+          "mode": "list",
+          "cachedResultName": "Cryptominers AE Data",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl52uQ64NtoEZGyC",
+          "mode": "list",
+          "cachedResultName": "Product Details",
+          "cachedResultUrl": "https://airtable.com/appTsJGaEokGqsMWg/tbl52uQ64NtoEZGyC"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -816,
+        -784
+      ],
+      "id": "d93c514d-46c6-4828-9539-bb5e4ef00243",
+      "name": "Read DB - Comparison2",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "GgxU4fSca0FFJQpu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const miners = $('Read DB - Comparison2').all().map(item => item.json);\nconst routerData = $('Parse Router').first().json;\nlet modelQuery = (routerData.model_name || '').toLowerCase().trim();\n\nconst removeWords = /\\b(miner|asic|the|model|about|details|specs?|info|tell me|show me)\\b/gi;\nmodelQuery = modelQuery.replace(removeWords, '').replace(/\\s+/g, ' ').trim();\n\nif (!modelQuery) {\n  return { \n    json: {\n      error: true,\n      output: '❌ Please specify which miner model you want details about.'\n    }\n  };\n}\n\nlet bestMatch = null;\nlet highestScore = 0;\n\nfor (const miner of miners) {\n  if (!miner.name_lower) continue;\n  \n  const minerName = miner.name_lower.toString().toLowerCase();\n  const cleanMinerName = minerName.replace(removeWords, '').replace(/\\s+/g, ' ').trim();\n  \n  let score = 0;\n  \n  if (cleanMinerName === modelQuery || minerName === modelQuery) {\n    score = 1000;\n  } else if (cleanMinerName.includes(modelQuery)) {\n    score = 800 - (cleanMinerName.length - modelQuery.length);\n  } else if (modelQuery.includes(cleanMinerName)) {\n    score = 750 - (modelQuery.length - cleanMinerName.length);\n  } else {\n    const queryWords = modelQuery.split(/[\\s\\-_]+/).filter(w => w.length > 1);\n    const nameWords = cleanMinerName.split(/[\\s\\-_]+/).filter(w => w.length > 1);\n    \n    let matchedWords = 0;\n    for (const qWord of queryWords) {\n      if (nameWords.some(nw => nw.includes(qWord) || qWord.includes(nw))) {\n        matchedWords++;\n      }\n    }\n    \n    if (matchedWords >= queryWords.length * 0.5) {\n      score = matchedWords * 100;\n    }\n  }\n  \n  if (score > highestScore) {\n    highestScore = score;\n    bestMatch = miner;\n  }\n}\n\nif (!bestMatch || highestScore < 100) {\n  return { \n    json: {\n      error: true,\n      output: `❌ Couldn't find model \"${routerData.model_name}\". Try:\\n• Check spelling\\n• Use official model name\\n• Ask to see all models from a manufacturer`\n    }\n  };\n}\n\nreturn {\n  json: {\n    matched_product: bestMatch.name,\n    url: bestMatch.url,\n    slug: bestMatch.slug,\n    original_query: routerData.model_name,\n    match_score: highestScore,\n    error: false\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -784
+      ],
+      "id": "c9740763-b014-4b89-8695-4614258e1fde",
+      "name": "Match Model2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error }}",
+              "value2": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        -784
+      ],
+      "id": "dd90536d-51c8-43dd-9d31-c2b27b281823",
+      "name": "Match Success?1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -144,
+        -784
+      ],
+      "id": "d4747a62-567c-4a12-98c9-7864b574b9fe",
+      "name": "Fetch Detail Page2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.item.json.data || '';\nconst customerInvestment = $('Route by Intent').first().json.investment || null; // Expected from previous node\n\nfunction clean(t) { \n    if (!t) return '';\n    return t.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, '').replace(/\\s+/g, ' ').trim(); \n}\n\n// Extract title\nconst titleMatch = html.match(/<h1[^>]*>([\\s\\S]*?)<\\/h1>/);\nconst title = titleMatch ? clean(titleMatch[1]) : 'Unknown Miner';\n\n// Extract price\nlet price = 'N/A';\nlet priceNumeric = 0;\nconst plainText = clean(html);\nconst priceIdx = plainText.indexOf('Best price');\n\nif (priceIdx > -1) {\n    const snippet = plainText.substring(priceIdx, priceIdx + 150);\n    const moneyMatch = snippet.match(/[\\$€]\\s?([\\d,]+)/);\n    if (moneyMatch) {\n        price = moneyMatch[0].replace(' ', ''); \n        priceNumeric = parseFloat(price.replace(/[\\$€,]/g, ''));\n    }\n}\nif (price === 'N/A' || price === '$0') {\n    const buySection = html.substring(html.indexOf('Where to buy'), html.indexOf('Buying tips'));\n    const tablePrice = buySection.match(/[\\$€]\\s?([\\d,]+)/);\n    if (tablePrice) {\n        price = tablePrice[0].replace(' ', '');\n        priceNumeric = parseFloat(price.replace(/[\\$€,]/g, ''));\n    }\n}\n\n// Extract profitability data\nconst profSection = html.substring(html.indexOf('Daily'), html.indexOf('Algorithms'));\nconst allVals = clean(profSection).match(/[\\-\\$€]\\s?[\\d,]+\\.\\d+/g) || [];\nconst profData = {\n    daily:   { income: allVals[0]||'-', elec: allVals[3]||'-', profit: allVals[6]||'-' },\n    monthly: { income: allVals[1]||'-', elec: allVals[4]||'-', profit: allVals[7]||'-' },\n    yearly:  { income: allVals[2]||'-', elec: allVals[5]||'-', profit: allVals[8]||'-' }\n};\n\n// Parse numeric values for ROI calculation\nfunction parseProfit(val) {\n    if (!val || val === '-') return 0;\n    return parseFloat(val.replace(/[\\$€,\\-]/g, ''));\n}\n\nconst dailyProfit = parseProfit(profData.daily.profit);\nconst monthlyProfit = parseProfit(profData.monthly.profit);\nconst yearlyProfit = parseProfit(profData.yearly.profit);\nconst dailyIncome = parseProfit(profData.daily.income);\nconst monthlyIncome = parseProfit(profData.monthly.income);\nconst yearlyIncome = parseProfit(profData.yearly.income);\nconst dailyElec = parseProfit(profData.daily.elec);\nconst monthlyElec = parseProfit(profData.monthly.elec);\nconst yearlyElec = parseProfit(profData.yearly.elec);\n\n// Calculate ROI\nif (!customerInvestment || priceNumeric <= 0) {\n    return {\n        error: 'Missing customer investment or invalid miner price',\n        message: 'Please provide a valid customer investment amount and ensure the miner has a valid price.'\n    };\n}\n\nconst investment = parseFloat(customerInvestment);\nconst unitsCanBuy = Math.floor(investment / priceNumeric);\n\nif (unitsCanBuy <= 0) {\n    return {\n        error: 'Insufficient investment',\n        message: `The investment of $${investment.toLocaleString()} is not enough to purchase even one ${title} at ${price}.`,\n        minimumRequired: price\n    };\n}\n\nconst totalDailyProfit = dailyProfit * unitsCanBuy;\nconst totalMonthlyProfit = monthlyProfit * unitsCanBuy;\nconst totalYearlyProfit = yearlyProfit * unitsCanBuy;\nconst totalDailyIncome = dailyIncome * unitsCanBuy;\nconst totalMonthlyIncome = monthlyIncome * unitsCanBuy;\nconst totalYearlyIncome = yearlyIncome * unitsCanBuy;\nconst totalDailyElec = dailyElec * unitsCanBuy;\nconst totalMonthlyElec = monthlyElec * unitsCanBuy;\nconst totalYearlyElec = yearlyElec * unitsCanBuy;\n\n// Calculate break-even in days\nconst breakEvenDays = dailyProfit > 0 ? (investment / totalDailyProfit) : null;\nconst breakEvenMonths = breakEvenDays ? (breakEvenDays / 30).toFixed(1) : null;\n\n// Calculate ROI percentages\nconst monthlyROI = investment > 0 ? ((totalMonthlyProfit / investment) * 100).toFixed(2) : 0;\nconst yearlyROI = investment > 0 ? ((totalYearlyProfit / investment) * 100).toFixed(2) : 0;\n\n// Calculate net profit after each year\nconst netProfitYear1 = totalYearlyProfit - investment;\nconst netProfitYear2 = (totalYearlyProfit * 2) - investment;\nconst netProfitYear3 = (totalYearlyProfit * 3) - investment;\n\nreturn {\n    minerModel: title,\n    \n    investment: {\n        totalInvestment: `$${investment.toLocaleString()}`,\n        pricePerUnit: price,\n        unitsCanBuy: unitsCanBuy,\n        totalSpent: `$${(priceNumeric * unitsCanBuy).toLocaleString()}`  // FIXED: Changed from pricePerUnit to priceNumeric\n    },\n    \n    profitability: {\n        daily: {\n            incomePerUnit: profData.daily.income,\n            totalIncome: `$${totalDailyIncome.toFixed(2)}`,\n            electricityCostPerUnit: profData.daily.elec,\n            totalElectricityCost: `$${totalDailyElec.toFixed(2)}`,\n            profitPerUnit: profData.daily.profit,\n            totalProfit: `$${totalDailyProfit.toFixed(2)}`\n        },\n        monthly: {\n            incomePerUnit: profData.monthly.income,\n            totalIncome: `$${totalMonthlyIncome.toFixed(2)}`,\n            electricityCostPerUnit: profData.monthly.elec,\n            totalElectricityCost: `$${totalMonthlyElec.toFixed(2)}`,\n            profitPerUnit: profData.monthly.profit,\n            totalProfit: `$${totalMonthlyProfit.toFixed(2)}`,\n            roiPercentage: `${monthlyROI}%`\n        },\n        yearly: {\n            incomePerUnit: profData.yearly.income,\n            totalIncome: `$${totalYearlyIncome.toFixed(2)}`,\n            electricityCostPerUnit: profData.yearly.elec,\n            totalElectricityCost: `$${totalYearlyElec.toFixed(2)}`,\n            profitPerUnit: profData.yearly.profit,\n            totalProfit: `$${totalYearlyProfit.toFixed(2)}`,\n            roiPercentage: `${yearlyROI}%`\n        }\n    },\n    \n    breakEven: {\n        days: breakEvenDays ? Math.ceil(breakEvenDays) : 'N/A',\n        months: breakEvenMonths || 'N/A',\n        years: breakEvenDays ? (breakEvenDays / 365).toFixed(2) : 'N/A',\n        status: breakEvenDays ? (breakEvenDays <= 365 ? 'Excellent' : breakEvenDays <= 730 ? 'Good' : 'Fair') : 'Unprofitable',\n        description: breakEvenDays ? \n            `You will recover your full investment in approximately ${Math.ceil(breakEvenDays)} days (${breakEvenMonths} months)` : \n            'Unable to calculate break-even - miner may not be profitable with current electricity costs'\n    },\n    \n    projections: {\n        year1: {\n            grossProfit: `$${totalYearlyProfit.toFixed(2)}`,\n            totalElectricityCost: `$${totalYearlyElec.toFixed(2)}`,\n            netProfit: `$${netProfitYear1.toFixed(2)}`,\n            roiPercentage: `${yearlyROI}%`\n        },\n        year2: {\n            grossProfit: `$${(totalYearlyProfit * 2).toFixed(2)}`,\n            totalElectricityCost: `$${(totalYearlyElec * 2).toFixed(2)}`,\n            netProfit: `$${netProfitYear2.toFixed(2)}`,\n            roiPercentage: `${((netProfitYear2 / investment) * 100).toFixed(2)}%`\n        },\n        year3: {\n            grossProfit: `$${(totalYearlyProfit * 3).toFixed(2)}`,\n            totalElectricityCost: `$${(totalYearlyElec * 3).toFixed(2)}`,\n            netProfit: `$${netProfitYear3.toFixed(2)}`,\n            roiPercentage: `${((netProfitYear3 / investment) * 100).toFixed(2)}%`\n        }\n    },\n    \n    summary: `Investment Analysis for ${title}: With $${investment.toLocaleString()}, you can purchase ${unitsCanBuy} unit(s) at ${price} each. Daily profit: $${totalDailyProfit.toFixed(2)} | Monthly profit: $${totalMonthlyProfit.toFixed(2)} | Yearly profit: $${totalYearlyProfit.toFixed(2)}. Break-even: ${breakEvenDays ? Math.ceil(breakEvenDays) + ' days (' + breakEvenMonths + ' months)' : 'N/A'}. After 1 year, your net profit will be $${netProfitYear1.toFixed(2)} (${yearlyROI}% ROI).`\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        -784
+      ],
+      "id": "1a21d2b9-d04b-4ddf-acd6-aa5d676d55c8",
+      "name": "ROI Calculation"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "data",
+        "options": {
+          "fileName": "index.html"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        64,
+        -400
+      ],
+      "id": "1a47cad6-5549-40f9-983a-33d2bc9a8421",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pdf.apexautomata.cloud/forms/chromium/convert/html",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "files",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        496,
+        -400
+      ],
+      "id": "15ecf27e-27ea-45ea-a6a4-ab28268c9d5e",
+      "name": "Html to pdf"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "chatInput": "Provide me whole list of all miners",
+          "SessionID": "+923411946334"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Generate PDF HTML": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read All Models from DB1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Document Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Document Data": {
+      "main": [
+        [
+          {
+            "node": "Generate PDF HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Intelligent Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intelligent Router": {
+      "main": [
+        [
+          {
+            "node": "Parse Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Router": {
+      "main": [
+        [
+          {
+            "node": "Route by Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Intent": {
+      "main": [
+        [
+          {
+            "node": "Read DB - Model Detail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read DB - Manufacturer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read DB - Price Range",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read DB - Best ROI",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read DB - Comparison",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Hosting Page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read All Models from DB1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read DB - Comparison2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read All Models from DB1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match Model": {
+      "main": [
+        [
+          {
+            "node": "Match Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match Success?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Detail Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Detail Page": {
+      "main": [
+        [
+          {
+            "node": "Scrape Detail Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Hosting Page": {
+      "main": [
+        [
+          {
+            "node": "Scrape Hosting Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read DB - Model Detail": {
+      "main": [
+        [
+          {
+            "node": "Match Model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read DB - Manufacturer": {
+      "main": [
+        [
+          {
+            "node": "Filter by Manufacturer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read DB - Price Range": {
+      "main": [
+        [
+          {
+            "node": "Filter by Price",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read DB - Best ROI": {
+      "main": [
+        [
+          {
+            "node": "Calculate Best ROI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Intelligent Router",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read DB - Comparison": {
+      "main": [
+        [
+          {
+            "node": "Match Model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match Model1": {
+      "main": [
+        [
+          {
+            "node": "Fetch Detail Page1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Detail Page1": {
+      "main": [
+        [
+          {
+            "node": "Scrape Comparison Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Comparison Data1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read DB - Comparison2": {
+      "main": [
+        [
+          {
+            "node": "Match Model2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match Model2": {
+      "main": [
+        [
+          {
+            "node": "Match Success?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match Success?1": {
+      "main": [
+        [
+          {
+            "node": "Fetch Detail Page2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Detail Page2": {
+      "main": [
+        [
+          {
+            "node": "ROI Calculation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Html to pdf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "30b7f522-d018-45c1-be7a-c2562f13bb93",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc8bd653bd955df4ad98b1ca0e1ecf383fad117acca015364bb1781d3b620deb"
+  },
+  "id": "xgKVN5IEcQNkjU0R",
+  "tags": [
+    {
+      "updatedAt": "2026-02-09T17:48:04.380Z",
+      "createdAt": "2026-02-09T17:48:04.380Z",
+      "id": "y4p8jvtJ9GvqxVrs",
+      "name": "Final"
+    }
+  ]
+}

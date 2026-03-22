@@ -1,0 +1,301 @@
+{
+  "name": "Follow-Up Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -880,
+        112
+      ],
+      "id": "1a71da33-2de5-4f11-88f0-60b98a1075ec",
+      "name": "Check Every Hour"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.zohoapis.com/crm/v2/coql",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "zohoOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"select_query\": \"select Last_Name, Phone, Qualification_Score, Lead_Status, Last_Activity_Time, Follow_Up_Count from Leads where Qualification_Status = 'Qualified' and Lead_Status in ('WARM', 'COLD') and Agent_Notified = false\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -624,
+        144
+      ],
+      "id": "40aef43f-c84e-4076-8f07-e44971921d01",
+      "name": "Get Leads Needing Follow-Up",
+      "credentials": {
+        "zohoOAuth2Api": {
+          "id": "1n9bAgErFhENCV1I",
+          "name": "Zoho account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process leads and determine which need follow-up\nconst leads = $input.item.json.data || [];\nconst now = new Date();\nconst results = [];\n\nfor (const lead of leads) {\n  const lastActivity = new Date(lead.Last_Activity_Time);\n  const hoursSince = (now - lastActivity) / (1000 * 60 * 60);\n  const followUpCount = lead.Follow_Up_Count || 0;\n  \n  let needsFollowUp = false;\n  let followUpType = '';\n  let message = '';\n  \n  // Follow-up sequence logic\n  if (followUpCount === 0 && hoursSince >= 12) {\n    needsFollowUp = true;\n    followUpType = '12h';\n    message = `Hi ${lead.Last_Name}! Just checking in! Do you have any questions about mining devices or hosting?`;\n  } else if (followUpCount === 1 && hoursSince >= 24) {\n    needsFollowUp = true;\n    followUpType = '24h';\n    message = `Hi ${lead.Last_Name}! I wanted to share some helpful info. Our most popular device is the S21 Pro at $4,175 - it generates $330/month gross. Would you like more details?`;\n  } else if (followUpCount === 2 && hoursSince >= 48) {\n    needsFollowUp = true;\n    followUpType = '48h';\n    message = `Hi ${lead.Last_Name}! Still deciding? I'm here to help you choose the right option for your budget and goals. What questions can I answer?`;\n  } else if (followUpCount === 3 && hoursSince >= 72) {\n    needsFollowUp = true;\n    followUpType = '72h';\n    message = `Hi ${lead.Last_Name}! I don't want you to miss out. We have limited hosting slots available. Would you like me to reserve one while you decide?`;\n  }\n  \n  if (needsFollowUp) {\n    results.push({\n      json: {\n        lead_id: lead.id,\n        name: lead.Last_Name,\n        phone: lead.Phone,\n        score: lead.Qualification_Score,\n        status: lead.Lead_Status,\n        follow_up_type: followUpType,\n        follow_up_count: followUpCount,\n        message: message,\n        hours_since_activity: hoursSince\n      }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        112
+      ],
+      "id": "7b3511d3-4335-4f98-a4e9-2e420176187f",
+      "name": "Determine Follow-Up Needed"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.length}}",
+              "operation": "larger"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        112
+      ],
+      "id": "b49631b5-a899-4a92-878c-394811370ae0",
+      "name": "Has Leads to Follow Up?"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "YOUR_PHONE_NUMBER_ID",
+        "recipientPhoneNumber": "={{$json.phone}}",
+        "textBody": "={{$json.message}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7ac33d68-66ac-4e0b-91b9-7e1f9a3536a0",
+      "name": "Send Follow-Up Message",
+      "webhookId": "0df619f9-fa0c-4d31-88e0-4d953502eb3b",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "xfS8EYHKb7SavwFR",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://www.zohoapis.com/crm/v2/Leads/{{$json.lead_id}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "zohoOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"data\": [{\n    \"Follow_Up_Count\": {{$json.follow_up_count + 1}},\n    \"Last_Follow_Up_Date\": \"{{$now.toISOString()}}\",\n    \"Last_Follow_Up_Type\": \"{{$json.follow_up_type}}\",\n    \"Last_Activity_Time\": \"{{$now.toISOString()}}\"\n  }]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "a9d0c792-80fe-4929-9e6d-2cb5df2e7416",
+      "name": "Update CRM Follow-Up",
+      "credentials": {
+        "zohoOAuth2Api": {
+          "id": "1n9bAgErFhENCV1I",
+          "name": "Zoho account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.zohoapis.com/crm/v2/coql",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "zohoOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"select_query\": \"select id, Last_Activity_Time, Follow_Up_Count from Leads where Follow_Up_Count = 4 and Last_Activity_Time < '{{$now.minus({hours: 72}).toISO()}}'\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        224
+      ],
+      "id": "3eabe5de-4ff5-42ab-a2a2-77fbe6097ddd",
+      "name": "Check for Dead Leads",
+      "credentials": {
+        "zohoOAuth2Api": {
+          "id": "1n9bAgErFhENCV1I",
+          "name": "Zoho account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        224,
+        208
+      ],
+      "id": "f7bf4155-f37b-4fd1-8068-e2874eb3e103",
+      "name": "Split Dead Leads"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://www.zohoapis.com/crm/v2/Leads/{{$json.id}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "zohoOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"data\": [{\n    \"Lead_Status\": \"DEAD\",\n    \"Marked_Dead_Date\": \"{{$now.toISOString()}}\",\n    \"Status\": \"Dead - No Response\"\n  }]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        208
+      ],
+      "id": "93866f14-9ab2-4beb-b5aa-07d0090443d2",
+      "name": "Mark as DEAD"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Check Every Hour": {
+      "main": [
+        []
+      ]
+    },
+    "Get Leads Needing Follow-Up": {
+      "main": [
+        [
+          {
+            "node": "Determine Follow-Up Needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Follow-Up Needed": {
+      "main": [
+        [
+          {
+            "node": "Has Leads to Follow Up?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Leads to Follow Up?": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-Up Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check for Dead Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Follow-Up Message": {
+      "main": [
+        [
+          {
+            "node": "Update CRM Follow-Up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for Dead Leads": {
+      "main": [
+        [
+          {
+            "node": "Split Dead Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Dead Leads": {
+      "main": [
+        [
+          {
+            "node": "Mark as DEAD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark as DEAD": {
+      "main": [
+        [
+          {
+            "node": "Split Dead Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a9f70d3e-e713-41b2-9cc5-d7a4c64f71d4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc8bd653bd955df4ad98b1ca0e1ecf383fad117acca015364bb1781d3b620deb"
+  },
+  "id": "mEXSGTN793gxPvJZ",
+  "tags": [
+    {
+      "updatedAt": "2026-02-09T17:48:37.301Z",
+      "createdAt": "2026-02-09T17:48:37.301Z",
+      "id": "q40dfNeEt8zvzC2H",
+      "name": "Discard"
+    }
+  ]
+}
